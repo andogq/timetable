@@ -17,13 +17,14 @@ import os
 import json
 
 struct Time {
-mut:
 	hour int
 	minute int
 }
-fn (mut t Time) add_minutes(minutes int) {
-	t.hour = (t.hour + ((t.minute + minutes) / 60)) % 24
-	t.minute = (t.minute + minutes) % 60
+fn (t Time) add_minutes(minutes int) Time {
+	return Time{
+		hour: (t.hour + ((t.minute + minutes) / 60)) % 24
+		minute: (t.minute + minutes) % 60
+	}
 }
 fn (t Time) str() string {
 	mut hour := t.hour.str()
@@ -116,6 +117,5 @@ fn main() {
 	data.sort(a.options.len < b.options.len)
 
 	mut a := new_time("08:30")
-	mut b := new_time("09:30")
-	println(a <= b)
+	println(a.add_minutes(90))
 }
