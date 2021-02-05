@@ -1,3 +1,16 @@
+/*
+# Plan:
+
+Beginning with the class with the least options, pick the option that has the
+least impact
+
+Impact could be calculated from:
+ - Difference in time between first class and last class in the week
+ - Empty space between classes during the week
+ - Distance between average time of class and that class
+
+*/
+
 module main
 
 import os
