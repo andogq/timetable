@@ -37,6 +37,20 @@ fn (t Time) str() string {
 	}
 	return '$hour:$minute'
 }
+fn (a Time) < (b Time) bool {
+	mut result := true
+
+	if a.hour == b.hour {
+		result = a.minute < b.minute
+	} else {
+		result = a.hour < b.hour
+	}
+
+	return result
+}
+fn (a Time) == (b Time) bool {
+	return a.hour == b.hour && a.minute == b.minute
+}
 fn new_time(time_string string) Time {
 	time_split := time_string.split(":")
 
@@ -101,7 +115,7 @@ fn main() {
 	// First, sort activities in order of how many options there are
 	data.sort(a.options.len < b.options.len)
 
-	mut t := new_time("08:30")
-	t.add_minutes(90)
-	println(t)
+	mut a := new_time("08:30")
+	mut b := new_time("09:30")
+	println(a <= b)
 }
