@@ -48,13 +48,43 @@ fn new_time(time_string string) Time {
 		minute
 	}
 }
+
+struct Class {
+	subject string
+	description string
+	class string
 	options []ActivityOption
 }
 
 struct ActivityOption {
-	day string
-	start string
+	day int
+	time string
 	duration int
+}
+
+struct Activity {
+	time string
+	duration string
+	subject string
+	description string
+	class string
+}
+
+struct Day {
+	activities []Activity
+}
+
+// fn (mut d Day) add(activity Activity) bool {
+// 	for a in d.activities {
+		
+// 	}
+// }
+
+struct Timetable {
+	days []Day = []Day{len: 5, init: Day{}}
+}
+
+fn (t Timetable) allocate(class Class) {
 }
 
 fn main() {
