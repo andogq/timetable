@@ -58,14 +58,18 @@ struct ActivityOption {
 }
 
 fn main() {
-	data := os.read_file("data.json") or {
+	// Load json from file
+	d := os.read_file("data.json") or {
 		eprintln("Problem opening file")
 		return
 	}
-	d := json.decode([]Subject, data) or {
+	mut data := json.decode([]Class, d) or {
 		eprintln("Problem decoding json")
 		return
 	}
+
+	// First, sort activities in order of how many options there are
+	data.sort(a.options.len < b.options.len)
 
 	mut t := new_time("08:30")
 	t.add_minutes(90)
