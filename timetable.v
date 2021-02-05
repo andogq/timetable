@@ -16,14 +16,38 @@ module main
 import os
 import json
 
-struct Subject {
-	code string
-	description string
-	activities []Activity
+struct Time {
+mut:
+	hour int
+	minute int
 }
+fn (mut t Time) add_minutes(minutes int) {
+	t.hour = (t.hour + ((t.minute + minutes) / 60)) % 24
+	t.minute = (t.minute + minutes) % 60
+}
+fn (t Time) str() string {
+	mut hour := t.hour.str()
+	if hour.len == 1 {
+		hour = "0$hour"
+	}
 
-struct Activity {
-	activity_type string
+	mut minute := t.minute.str()
+	if minute.len == 1 {
+		minute = "0$minute"
+	}
+	return '$hour:$minute'
+}
+fn new_time(time_string string) Time {
+	time_split := time_string.split(":")
+
+	hour := time_split[0].int() % 24
+	minute := time_split[1].int() % 60
+
+	return Time{
+		hour
+		minute
+	}
+}
 	options []ActivityOption
 }
 
@@ -43,5 +67,7 @@ fn main() {
 		return
 	}
 
-	println(d)
+	mut t := new_time("08:30")
+	t.add_minutes(90)
+	println(t)
 }
