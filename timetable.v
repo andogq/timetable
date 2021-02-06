@@ -70,11 +70,27 @@ struct ActivityOption {
 }
 
 struct Activity {
-	time string
-	duration string
+	time Time
+	duration int
 	subject string
 	description string
 	class string
+}
+fn (a Activity) clash(b Activity) bool {
+	// Check that they aren't at the same time
+	mut clash := a.time == b.time
+
+	if a.time < b.time {
+		// a can't end after b starts
+		a_end := a.time.add_minutes(a.duration)
+		clash = clash || (b.time < a_end)
+	} else if a.time > b.time {
+		// b can't end after a starts
+		b_end := b.time.add_minutes(b.duration)
+		clash = clash || (a.time < b_end)
+	}
+
+	return clash
 }
 
 struct Day {
@@ -108,6 +124,13 @@ fn main() {
 	// First, sort activities in order of how many options there are
 	data.sort(a.options.len < b.options.len)
 
-	mut a := new_time("08:30")
-	println(a.add_minutes(90))
+	a := Activity{
+		time: new_time("8:30")
+		duration: 120
+	}
+	b := Activity{
+		time: new_time("10:30")
+		duration: 60
+	}
+	println(a.clash(b))
 }
