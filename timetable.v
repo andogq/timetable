@@ -39,15 +39,7 @@ fn (t Time) str() string {
 	return '$hour:$minute'
 }
 fn (a Time) < (b Time) bool {
-	mut result := true
-
-	if a.hour == b.hour {
-		result = a.minute < b.minute
-	} else {
-		result = a.hour < b.hour
-	}
-
-	return result
+	return (a.hour == b.hour && a.minute < b.minute) || a.hour < b.hour
 }
 fn (a Time) == (b Time) bool {
 	return a.hour == b.hour && a.minute == b.minute
