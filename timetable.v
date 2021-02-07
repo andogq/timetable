@@ -94,14 +94,21 @@ fn (a Activity) clash(b Activity) bool {
 }
 
 struct Day {
+mut:
 	activities []Activity
 }
+fn (mut d Day) add(activity Activity) bool {
+	mut clashes := false
+	for a in d.activities {
+		clashes = clashes || activity.clash(a)
+	}
 
-// fn (mut d Day) add(activity Activity) bool {
-// 	for a in d.activities {
-		
-// 	}
-// }
+	if !clashes {
+		d.activities << activity
+	}
+
+	return clashes
+}
 
 struct Timetable {
 	days []Day = []Day{len: 5, init: Day{}}
@@ -124,13 +131,13 @@ fn main() {
 	// First, sort activities in order of how many options there are
 	data.sort(a.options.len < b.options.len)
 
-	a := Activity{
-		time: new_time("8:30")
-		duration: 120
-	}
-	b := Activity{
-		time: new_time("10:30")
-		duration: 60
-	}
-	println(a.clash(b))
+	mut day := Day{}
+
+	a := Activity{time: new_time("8:30"), duration: 120}
+	b := Activity{time: new_time("10:30"), duration: 120}
+
+	day.add(a)
+	day.add(b)
+
+	println(day)
 }
