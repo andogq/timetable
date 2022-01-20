@@ -1,0 +1,276 @@
+[
+  {
+    "name": "Further Programming Lectorial",
+    "times": [
+      {
+        "day": 1,
+        "time": "10:30",
+        "duration": 60,
+        "location": "Melbourne City"
+      },
+      {
+        "day": 1,
+        "time": "16:30",
+        "duration": 60,
+        "location": "Canvas"
+      }
+    ]
+  },
+  {
+    "name": "Further Programming Practical",
+    "times": [
+      {
+        "day": 1,
+        "time": "12:30",
+        "duration": 120,
+        "location": "Melbourne City"
+      },
+      {
+        "day": 3,
+        "time": "10:30",
+        "duration": 120,
+        "location": "Melbourne City"
+      },
+      {
+        "day": 2,
+        "time": "10:30",
+        "duration": 120,
+        "location": "Melbourne City"
+      },
+      {
+        "day": 2,
+        "time": "08:30",
+        "duration": 120,
+        "location": "Melbourne City"
+      },
+      {
+        "day": 0,
+        "time": "14:30",
+        "duration": 120,
+        "location": "Canvas"
+      },
+      {
+        "day": 2,
+        "time": "14:30",
+        "duration": 120,
+        "location": "Canvas"
+      }
+    ]
+  },
+  {
+    "name": "Embedded System Design & Impl Lectorial",
+    "times": [
+      {
+        "day": 0,
+        "time": "13:30",
+        "duration": 60,
+        "location": "Melbourne City"
+      },
+      {
+        "day": 3,
+        "time": "15:30",
+        "duration": 60,
+        "location": "Canvas"
+      }
+    ]
+  },
+  {
+    "name": "Embedded System Design & Impl Practical",
+    "times": [
+      {
+        "day": 3,
+        "time": "16:30",
+        "duration": 120,
+        "location": "Canvas"
+      },
+      {
+        "day": 2,
+        "time": "14:30",
+        "duration": 120,
+        "location": "Melbourne City"
+      },
+      {
+        "day": 3,
+        "time": "11:30",
+        "duration": 120,
+        "location": "Melbourne City"
+      },
+      {
+        "day": 4,
+        "time": "11:30",
+        "duration": 120,
+        "location": "Melbourne City"
+      },
+      {
+        "day": 2,
+        "time": "11:30",
+        "duration": 120,
+        "location": "Melbourne City"
+      }
+    ]
+  },
+  {
+    "name": "Network Engineering Lectorial",
+    "times": [
+      {
+        "day": 2,
+        "time": "13:30",
+        "duration": 60,
+        "location": "Melbourne City"
+      },
+      {
+        "day": 2,
+        "time": "17:30",
+        "duration": 60,
+        "location": "Canvas"
+      }
+    ]
+  },
+  {
+    "name": "Network Engineering Practical",
+    "times": [
+      {
+        "day": 3,
+        "time": "08:30",
+        "duration": 120,
+        "location": "Melbourne City"
+      },
+      {
+        "day": 4,
+        "time": "09:30",
+        "duration": 120,
+        "location": "Melbourne City"
+      },
+      {
+        "day": 4,
+        "time": "13:30",
+        "duration": 120,
+        "location": "Melbourne City"
+      },
+      {
+        "day": 0,
+        "time": "14:30",
+        "duration": 120,
+        "location": "Canvas"
+      }
+    ]
+  },
+  {
+    "name": "Practical Database Concepts V_Lectorial",
+    "times": [
+      {
+        "day": 4,
+        "time": "16:30",
+        "duration": 120,
+        "location": "Canvas"
+      },
+      {
+        "day": 2,
+        "time": "16:30",
+        "duration": 120,
+        "location": "Canvas"
+      },
+      {
+        "day": 3,
+        "time": "14:30",
+        "duration": 120,
+        "location": "Canvas"
+      },
+      {
+        "day": 3,
+        "time": "16:30",
+        "duration": 120,
+        "location": "Canvas"
+      }
+    ]
+  },
+  {
+    "name": "Practical Database Concepts V_Practical",
+    "times": [
+      {
+        "day": 4,
+        "time": "14:30",
+        "duration": 120,
+        "location": "Canvas"
+      },
+      {
+        "day": 0,
+        "time": "12:30",
+        "duration": 120,
+        "location": "Canvas"
+      },
+      {
+        "day": 3,
+        "time": "12:30",
+        "duration": 120,
+        "location": "Canvas"
+      },
+      {
+        "day": 1,
+        "time": "18:30",
+        "duration": 120,
+        "location": "Canvas"
+      },
+      {
+        "day": 2,
+        "time": "10:30",
+        "duration": 120,
+        "location": "Canvas"
+      },
+      {
+        "day": 2,
+        "time": "08:30",
+        "duration": 120,
+        "location": "Canvas"
+      },
+      {
+        "day": 3,
+        "time": "10:30",
+        "duration": 120,
+        "location": "Canvas"
+      },
+      {
+        "day": 4,
+        "time": "12:30",
+        "duration": 120,
+        "location": "Canvas"
+      },
+      {
+        "day": 0,
+        "time": "19:30",
+        "duration": 120,
+        "location": "Canvas"
+      },
+      {
+        "day": 4,
+        "time": "18:30",
+        "duration": 120,
+        "location": "Canvas"
+      },
+      {
+        "day": 3,
+        "time": "18:30",
+        "duration": 120,
+        "location": "Canvas"
+      },
+      {
+        "day": 2,
+        "time": "14:30",
+        "duration": 120,
+        "location": "Canvas"
+      },
+      {
+        "day": 0,
+        "time": "10:30",
+        "duration": 120,
+        "location": "Canvas"
+      },
+      {
+        "day": 0,
+        "time": "16:30",
+        "duration": 120,
+        "location": "Canvas"
+      }
+    ]
+  }
+]
