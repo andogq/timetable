@@ -1,0 +1,31 @@
+* {
+    margin: 0;
+    padding: 0;
+
+    font-family: sans-serif;
+
+    --main: #ec6f2e;
+}
+
+html, body {
+    height: 100%;
+    width: 100%;
+}
+
+#svelte {
+    height: 100%;
+    width: 100%;
+}
+
+a, a:visited {
+    color: var(--main);
+}
+
+p {
+    margin: 0.5rem 0;
+}
+
+input, button, select {
+    padding: 0.25rem;
+    margin: 0.25rem;
+}

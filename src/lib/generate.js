@@ -1,8 +1,3 @@
-const fs = require("fs/promises");
-const path = require("path");
-
-const DATA = "./data";
-
 const DAYS = [
     "Monday",
     "Tuesday",
@@ -11,7 +6,13 @@ const DAYS = [
     "Friday"
 ];
 
-const PREFERRED_LOCATION = "Melbourne City";
+function convert_time(day, time) {
+    let [hours, minutes] = time.split(":").map(n => Number(n));
+    
+    hours += day * 24;
+    
+    return (hours * 60) + minutes;
+}
 
 function permutate(options) {
     if (options.length === 1) return options[0].times.map(time => [{ name: options[0].name, ...time }]);
@@ -32,52 +33,6 @@ function permutate(options) {
         
         return result;
     }
-}
-
-function convert_time(day, time) {
-    let [hours, minutes] = time.split(":").map(n => Number(n));
-    
-    hours += day * 24;
-    
-    return (hours * 60) + minutes;
-}
-
-
-function format_time(time) {
-    let mins_per_day = 24 * 60;
-    
-    let day = Math.floor(time / mins_per_day);
-    time = time % mins_per_day;
-    
-    let hours = String(Math.floor(time / 60));
-    let mins = String(time % 60);
-    
-    if (hours.length === 1) hours = `0${hours}`;
-    if (mins.length === 1) mins = `0${mins}`;
-    
-    return {
-        day,
-        time: `${hours}:${mins}`
-    }
-}
-
-function format_duration(duration) {
-    let hours = Math.floor(duration / 60);
-    let mins = duration % 60;
-    
-    hours = hours > 0 ? 
-        hours + (
-            hours === 1 ? " hr" : " hrs"
-        ) :
-    "";
-    
-    mins = mins > 0 ?
-        mins + (
-            mins === 1 ? " min" : " mins"
-        ) :
-    "";
-    
-    return [hours, mins].join(" ").trim() || "0 mins";
 }
 
 function sort(timetable) {
@@ -102,90 +57,58 @@ function clashes(timetable) {
     return clash;
 }
 
-function calculate_penalty(timetable) {
-    let penalty = 0;
-    
-    let end_time = timetable[0].time;
-    
-    for (let subject of timetable) {
-        penalty += subject.time - end_time;
-        
-        end_time = subject.time + subject.duration;
+const PENALTIES = {
+    "breaks": timetable => {
+        let penalty = 0;
+
+        // Start with the first subject of the week
+        let end_time = timetable[0].time;
+        let day = timetable[0].day;
+
+        for (let subject of timetable) {
+            if (day !== subject.day) {
+                end_time = subject.time;
+                day = subject.day;
+            }
+            
+            penalty += subject.time - end_time;
+
+            end_time = subject.time + subject.duration;
+        }
+
+        return penalty;
+    },
+    "days": timetable => {
+        let days = [];
+
+        for (let subject of timetable) {
+            if (!days.includes(subject.day)) days.push(subject.day);
+        }
+
+        return days.length
+    },
+    "campus": (timetable, options) => {
+        let location_count = 0;
+
+        for (let subject of timetable) {
+            if (subject.location === options.campus) location_count++;
+        }
+
+        return -location_count;
     }
-    
-    return penalty;
 }
 
-function calculate_contact_hours(timetable) {
-    let contact_hours = DAYS.map((_, i) => ({
-        day: i,
-        start: Infinity,
-        end: 0,
-        class: 0,
-        class_count: 0
-    }));
-    
-    for (let subject of timetable) {
-        let day = contact_hours[subject.day];
-        
-        if (subject.time < day.start) day.start = subject.time;
-        if (subject.time + subject.duration > day.end) day.end = subject.time + subject.duration;
-        day.class += subject.duration;
-        day.class_count++;
-    }
-    
-    contact_hours = contact_hours
-        .filter(c => isFinite(c.start))
-        .map(c => ({
-            ...c,
-            total: c.end - c.start,
-            break: c.end - c.start - c.class
-        }));
-    
-    return contact_hours;
-}
-
-async function run() {
-//  let files = await fs.readdir(path.resolve(__dirname, DATA));
-//  let classes = [];
-//  
-//  for (let file_name of files) {
-//      let file_path = path.resolve(__dirname, DATA, file_name);
-//      
-//      console.log(`Loading ${file_path}`);
-//      
-//      let file = await fs.readFile(file_path);
-//      
-//      try {
-//          file = JSON.parse(file);
-//      } catch {
-//          // Not a JSON file
-//          continue;
-//      }
-//      
-//      let subject = {
-//          name: file_name.replace(/\..+$/, "").replace("_", " ").toUpperCase(),
-//          times: []
-//      }
-//      
-//      for (let time of Object.values(file)) {
-//          subject.times.push({
-//              day: DAYS.indexOf(DAYS.find(d => d.indexOf(time.day_of_week) === 0)),
-//              time: time.start_time,
-//              duration: Number(time.duration),
-//              location: time.campus_description
-//          });
-//      }
-//      
-//      classes.push(subject);
-//  }
-    
-    let classes = await fs.readFile(path.resolve(__dirname, "./data.json"));
-    classes = JSON.parse(classes);
+export default function generate(classes, {
+    amount = 10,
+    log = console.log,
+    rankings,
+    parameters,
+} = {}) {
+    let start_time = Date.now();
     
     // Generate all possibilities
     let timetables = permutate(classes);
-    console.log(`Total possibilities: ${timetables.length}`);
+    log(`Total possibilities: ${timetables.length}`);
     
     // Convert times
     timetables = timetables.map(timetable => (
@@ -208,53 +131,33 @@ async function run() {
         
         return !clash;
     });
-    console.log(`Found ${total_clashes} clashes`);
+    log(`Found ${total_clashes} clashes`);
     
     // Calculate penalty for each timetable
     timetables = timetables
         .map(timetable => ({
             timetable,
-            penalty: calculate_penalty(timetable),
-            locations: timetable.reduce((locations, subject) => ({
-                ...locations,
-                [subject.location]: (locations[subject.location] ?? 0) + 1
+            penalty: Object.entries(PENALTIES).reduce((obj, [key, penalty]) => ({
+                ...obj,
+                [key]: penalty(timetable, parameters)
             }), {})
         }));
-    
-    if (PREFERRED_LOCATION) {
-        // Sort by location preference
-        timetables = timetables.sort((a, b) => {
-            // Attempt to prioritise campus location, but if the same prioritise penalty
-            if (a.locations[PREFERRED_LOCATION] > b.locations[PREFERRED_LOCATION]) return -1;
-            else if (a.locations[PREFERRED_LOCATION] > b.locations[PREFERRED_LOCATION]) return 1;
-            else return b.penalty - a.penalty;
-        });
-    } else {
-        // Sort only on penalty
-        timetables = timetables.sort((a, b) => a.penalty - b.penalty);
-    }
-    
-    timetables = timetables.map(({timetable}) => timetable);
-    
-    // Pick out the best option
-    let timetable = timetables[0];
-    
-    // Calculate contact hours
-    let contact_hours = calculate_contact_hours(timetable);
-    
-    console.log(`\nSelected Subjects:`);
-    console.log(
-        timetable.map(subject => (
-            `${subject.name}: ${DAYS[subject.day]} ${format_time(subject.time).time} - ${format_time(subject.time + subject.duration).time} (${subject.location})`
-        )).join("\n")
-    );
-    
-    console.log(`\nWeek Summary:`);
-    console.log(
-        contact_hours.map(c => (
-            `${DAYS[c.day]}: ${format_time(c.start).time} to ${format_time(c.end).time} - ${c.class_count} class${c.class_count === 1 ? "" : "es"}, ${format_duration(c.total)} total (${format_duration(c.break)} break)`
-        )).join("\n")
-    );
-}
+   
+    timetables = timetables.sort((a, b) => {
+        for (let ranking of rankings) {
+            let r = a.penalty[ranking] - b.penalty[ranking];
+            if (r !== 0) return r;
+        }
 
-run();
+        // If here, everything is the same
+        return 0;
+    });
+    
+    timetables = timetables
+        .slice(0, amount);
+        
+
+    log(`Completed in ${Date.now() - start_time}ms`);
+
+    return timetables.map(({timetable}) => timetable);
+}

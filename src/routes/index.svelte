@@ -1,13 +1,6 @@
 <script>
-    import { page } from "$app/stores";
-    
     import Bookmarklet from "$lib/components/Bookmarklet.svelte";
-    import Generate from "$lib/components/Generate.svelte";
-
-    $: encoded = $page.url.searchParams.get("data");
 </script>
-
-<h1>Timetable Generator</h1>
 
 <ol>
     <li>Drag the button below into your bookmark bar</li>
@@ -16,7 +9,3 @@
 </ol>
 
 <Bookmarklet />
-
-{#if encoded}
-    <Generate {encoded}/>
-{/if}

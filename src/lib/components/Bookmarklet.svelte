@@ -26,10 +26,10 @@
         display: block;
         
         font-size: 3rem;
-        color: black;
+        color: var(--main);
         text-decoration: none;
 
-        border: 2px solid black;
+        border: 2px solid var(--main);
 
         width: fit-content;
         padding: 2rem;

@@ -57,7 +57,7 @@
 
         let encoded_data = btoa(JSON.stringify(classes));
 
-        window.open(`${window.ando_generator_url}/?data=${encoded_data}`, "_blank").focus();
+        window.open(`${window.ando_generator_url}/${encoded_data}`, "_blank").focus();
     }
 
     run();
