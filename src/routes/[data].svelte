@@ -37,6 +37,11 @@
 
     let rankings = [];
     let parameters = {};
+    $: invalid_rankings = rankings.filter(
+        (r, i) => r !== null && rankings.slice(i + 1).includes(r)
+    );
+
+    $: console.log(invalid_rankings);
 
     let timetables = null;
     let log = [];
@@ -82,20 +87,28 @@
         attempt to prioritise the options from top to bottom. If you don't like
         what you see, try change them and regenerate for other options.
     </p>
-    <p>Configure the options, and click "Generate" to generate some timetables.</p>
+    <p>
+        Configure the options, and click "Generate" to generate some timetables.
+    </p>
 
     <div>
         <ol id="optimisations">
             {#each OPTIMISATIONS as _, i}
                 <li>
-                    <select bind:value={rankings[i]}>
+                    <select
+                        bind:value={rankings[i]}
+                        class:error={invalid_rankings.includes(rankings[i])}
+                    >
                         <option value={null} selected>
                             Select optimsiation
                         </option>
                         {#each OPTIMISATIONS as { key }}
-                            {#if rankings[i] === key || !rankings.includes(key)}
-                                <option value={key}>{format_text(key)}</option>
-                            {/if}
+                            <option value={key}>
+                                {format_text(key)}
+                                {#if rankings[i] !== key && rankings.includes(key)}
+                                    (Selected)
+                                {/if}
+                            </option>
                         {/each}
                     </select>
 
@@ -127,7 +140,10 @@
         </div>
     </div>
 
-    <button on:click={run} disabled={rankings.includes(null)}>
+    <button
+        on:click={run}
+        disabled={invalid_rankings.length !== 0 || rankings.includes(null)}
+    >
         Generate
     </button>
 {/if}
@@ -157,3 +173,9 @@
         <Output timetable={timetables[selected_timetable]} />
     {/if}
 {/if}
+
+<style>
+    .error {
+        border: 2px solid red;
+    }
+</style>
