@@ -83,7 +83,7 @@
                 <li>
                     <select bind:value={rankings[i]}>
                         <option value={null} selected>
-                            Select optimsiation
+                            Select optimisation
                         </option>
                         {#each OPTIMISATIONS as { key }}
                             {#if rankings[i] === key || !rankings.includes(key)}
