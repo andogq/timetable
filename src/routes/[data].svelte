@@ -100,7 +100,7 @@
                         class:error={invalid_rankings.includes(rankings[i])}
                     >
                         <option value={null} selected>
-                            Select optimsiation
+                            Select optimisation
                         </option>
                         {#each OPTIMISATIONS as { key }}
                             <option value={key}>
