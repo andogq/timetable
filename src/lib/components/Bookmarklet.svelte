@@ -6,7 +6,7 @@
     window.ando_generator_url = "${$page.url.origin}";
 
     let script = document.createElement("script");
-    script.src = "${$page.url.origin}/static/bookmarklet.js";
+    script.src = "${$page.url.origin}/bookmarklet.js";
     document.body.append(script);
 })();
     `
