@@ -75,7 +75,13 @@
 {#if decoded === null}
     <p>Data not found, or problem decoding data. Please try again.</p>
 {:else}
-    <p>Configure options, and click "Generate" to generate some timetables.</p>
+    <p>
+        In order to generate the best possible table for your circumstance,
+        please configure the rankings of the options below. The algorithm will
+        attempt to prioritise the options from top to bottom. If you don't like
+        what you see, try change them and regenerate for other options.
+    </p>
+    <p>Configure the options, and click "Generate" to generate some timetables.</p>
 
     <div>
         <ol id="optimisations">
