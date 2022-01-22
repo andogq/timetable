@@ -1,38 +1,82 @@
-# create-svelte
+# Timetable Generator
 
-Everything you need to build a Svelte project, powered by [`create-svelte`](https://github.com/sveltejs/kit/tree/master/packages/create-svelte);
+A little web app to make choosing a timetable simple.
 
-## Creating a project
+It is still in a very early stage, so there is a lot that is to be improved in
+both looks and functionality, so please feel free to contribute either ideas or
+code, anything is appreciated!
 
-If you're seeing this, you've probably already done this step. Congrats!
+## Institution Support
 
-```bash
-# create a new project in the current directory
-npm init svelte@next
+This generator is built for the Allocate+ timetable software, and will not work
+for other platforms. It is currently not a focus to bring this to other
+platforms, how ever if your institution does use something else please do open
+an issue with your institution name and the name of platform that they use, for
+future consideration.
 
-# create a new project in my-app
-npm init svelte@next my-app
-```
+Currently, the following institutions have been verified to work:
 
-> Note: the `@next` is temporary
+ - RMIT University
+ - Melbourne University
 
-## Developing
+Does your institution use Allocate+ and isn't in the list above? Please open an
+issue so it can be added.
 
-Once you've created a project and installed dependencies with `npm install` (or `pnpm install` or `yarn`), start a development server:
+## Features:
 
-```bash
-npm run dev
+ - [ ] Generation optimisations
+    
+    - [x] Optimise for minimal days
+    
+    - [x] Optimise for minimal breaks between subjects
+    
+    - [x] Optimise to attend a specific campus (including online/in-person)
+    
+    - [ ] Optimise to group days (eg have all classes at the start/middle/end of
+    the week)
+    
+    - [ ] Optimise for specific times in the day (all classes in morning,
+    afternoon ect)
+    
+    - [ ] Optimise around prior commitments (block out days/times)
+    
+ - [ ] Generate a timetable with a friend to both be in the same classes
+ 
+ - [ ] Generate best options for allocation adjustment, based on how full
+ classes are
+ 
+ - [ ] Show alternatives for a class, to further customise the generated
+ timetable
 
-# or start the server and open the app in a new browser tab
-npm run dev -- --open
-```
+## How does it work?
 
-## Building
+All processing occurs on device, and no timetable data is stored on any servers
+anywhere.
 
-Before creating a production version of your app, install an [adapter](https://kit.svelte.dev/docs#adapters) for your target environment. Then:
+The data is collected through a bookmarklet, which is a little snippet of
+JavaScript that is stored within a bookmark in the browser, and can only be
+executed manually by the user. This bookmarklet injects a script into the
+timetable page, which makes requests to the timetable server to download the
+data for each class.
 
-```bash
-npm run build
-```
+Once the data is collected, it is encoded and sent to the web app in the URL,
+where it is collected and processed.
 
-> You can preview the built app with `npm run preview`, regardless of whether you installed an adapter. This should _not_ be used to serve your app in production.
+### Why a bookmarklet, why not an extension?
+
+Extensions needlessly add complexity to what is trying to be achieved. They
+require submission to an extension store for each browser, have differing APIs
+between browsers and are not quite what is required.
+
+A bookmarklet works on any browser that supports JS, is simple to create, update
+and to distribute to users.
+
+## Something's not right
+
+If something isn't working as expected please create an
+[issue](https://github.com/andogq/timetable/issues/new/choose) and describe what
+the problem is that you're facing.
+
+Did the app crash? Is there a better combination that you can make yourself? Is
+there an optimisation or feature that is missing that you would like to see
+added? Whatever it is, please don't hesistate to make an issue.
