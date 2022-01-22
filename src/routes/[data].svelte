@@ -69,6 +69,7 @@
             rankings,
             parameters,
         });
+        selected_timetable = 0;
     }
 </script>
 
