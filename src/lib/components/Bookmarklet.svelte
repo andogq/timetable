@@ -17,6 +17,7 @@
 <a
     href="javascript:{bookmarklet_code}"
     id="bookmarklet"
+    on:click={e => e.preventDefault()}
 >
     Timetable Generator
 </a>
