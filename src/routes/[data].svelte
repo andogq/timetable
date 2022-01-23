@@ -17,6 +17,12 @@
     let decoded = null;
     let campus_options = [];
 
+    let calendar_options = {
+        start: Infinity,
+        end: 0,
+        tick: Infinity,
+    };
+
     $: if (
         timetables !== null &&
         timetables.length > 0 &&
@@ -35,8 +41,9 @@
                 if (
                     typeof subject.name !== "string" ||
                     !Array.isArray(subject.times)
-                )
+                ) {
                     throw "Malformed subject";
+                }
 
                 for (let time of subject.times) {
                     if (
@@ -44,11 +51,14 @@
                         typeof time.time !== "string" ||
                         typeof time.duration !== "number" ||
                         typeof time.location !== "string"
-                    )
+                    ) {
                         throw "Malformed time";
+                    }
 
-                    if (!campus_options.includes(time.location))
+                    // Determine the campus options
+                    if (!campus_options.includes(time.location)) {
                         campus_options.push(time.location);
+                    }
                 }
             }
         } catch (e) {
@@ -67,6 +77,27 @@
             rankings,
             parameters,
         });
+
+        for (let timetable of timetables) {
+            for (let subject of timetable) {
+                // Determine the time characteristics for the output
+                let [hours, mins] = subject.pretty_time.split(":");
+                let t_start = Number(hours) + Number(mins) / 60;
+                let t_end = t_start + subject.duration / 60;
+
+                for (let time of [t_start, t_end]) {
+                    if (time < calendar_options.start)
+                        calendar_options.start = time;
+                    if (time > calendar_options.end)
+                        calendar_options.end = time;
+
+                    let mins = time % 1;
+                    if (mins < calendar_options.tick)
+                        calendar_options.tick = mins;
+                }
+            }
+        }
+
         selected_timetable = 0;
     }
 
@@ -85,7 +116,7 @@
             parameters: {
                 campus: {
                     type: "select",
-                    options: campus_options
+                    options: campus_options,
                 },
             },
         },
@@ -194,7 +225,10 @@
                 Next
             </button>
         </div>
-        <Output timetable={timetables[selected_timetable]} />
+        <Output
+            timetable={timetables[selected_timetable]}
+            bind:calendar_options
+        />
     {/if}
 {/if}
 
