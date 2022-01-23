@@ -17,11 +17,7 @@
     let decoded = null;
     let campus_options = [];
 
-    let calendar_options = {
-        start: Infinity,
-        end: 0,
-        tick: Infinity,
-    };
+    let calendar_options = null;
 
     $: if (
         timetables !== null &&
@@ -33,36 +29,49 @@
 
     $: if ($page.params.data) {
         try {
-            decoded = JSON.parse(atob($page.params.data));
+            let raw = JSON.parse(atob($page.params.data));
 
-            if (!Array.isArray(decoded)) throw "Decoded is not an array";
+            if (!Array.isArray(raw)) throw "Decoded is not an array";
 
-            for (let subject of decoded) {
+            [campus_options, decoded] = raw;
+
+            decoded = decoded.map((subject) => {
                 if (
-                    typeof subject.name !== "string" ||
-                    !Array.isArray(subject.times)
+                    // Name
+                    typeof subject[0] !== "string" ||
+                    // Times
+                    !Array.isArray(subject[1])
                 ) {
                     throw "Malformed subject";
                 }
 
-                for (let time of subject.times) {
-                    if (
-                        typeof time.day !== "number" ||
-                        typeof time.time !== "string" ||
-                        typeof time.duration !== "number" ||
-                        typeof time.location !== "string"
-                    ) {
-                        throw "Malformed time";
-                    }
+                return {
+                    name: subject[0],
+                    times: subject[1].map((time) => {
+                        if (
+                            // Day
+                            typeof time[0] !== "number" ||
+                            // Time
+                            typeof time[1] !== "number" ||
+                            // Length
+                            typeof time[2] !== "number" ||
+                            // Campus
+                            typeof time[3] !== "number"
+                        ) {
+                            throw "Malformed time";
+                        }
 
-                    // Determine the campus options
-                    if (!campus_options.includes(time.location)) {
-                        campus_options.push(time.location);
-                    }
-                }
-            }
+                        return {
+                            day: time[0],
+                            time: time[1],
+                            duration: time[2],
+                            location: campus_options[time[3]]
+                        }
+                    }),
+                };
+            });
         } catch (e) {
-            console.log(e);
+            console.error(e);
             decoded = null;
             log = [
                 ...log,
@@ -72,31 +81,41 @@
     }
 
     function run() {
+        timetables = null;
+        
         timetables = generate(decoded, {
-            log: (message) => (log = [...log, message]),
             rankings,
             parameters,
         });
 
+        // Determine the time characteristics for the output
+        calendar_options = {
+            start: Infinity,
+            end: 0,
+            tick: Infinity,
+        };
+
         for (let timetable of timetables) {
             for (let subject of timetable) {
-                // Determine the time characteristics for the output
-                let [hours, mins] = subject.pretty_time.split(":");
-                let t_start = Number(hours) + Number(mins) / 60;
-                let t_end = t_start + subject.duration / 60;
-
-                for (let time of [t_start, t_end]) {
-                    if (time < calendar_options.start)
+                for (let time of [subject.time, subject.time + subject.duration]) {
+                    if (time < calendar_options.start) {
                         calendar_options.start = time;
-                    if (time > calendar_options.end)
+                    }
+                    if (time > calendar_options.end) {
                         calendar_options.end = time;
+                    }
 
-                    let mins = time % 1;
-                    if (mins < calendar_options.tick)
+                    let mins = time % 60;
+                    if (mins < calendar_options.tick) {
                         calendar_options.tick = mins;
+                    }
                 }
             }
         }
+
+        calendar_options.start /= 60;
+        calendar_options.end /= 60;
+        calendar_options.tick /= 60;
 
         selected_timetable = 0;
     }

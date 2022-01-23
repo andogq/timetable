@@ -37,7 +37,7 @@
 
         for (let subject of timetable) {
             let start =
-                ((subject.time % (24 * 60)) / 60 - calendar_options.start) /
+                ((subject.time / 60) - calendar_options.start) /
                 calendar_options.tick;
             let length = subject.duration / 60 / calendar_options.tick;
             let end = start + length;
