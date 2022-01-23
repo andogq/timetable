@@ -5,48 +5,17 @@
 
     import Output from "$lib/components/Output.svelte";
 
-    const OPTIMISATIONS = [
-        {
-            key: "breaks",
-            label: "Minimise the amount of time between subjects on a single day",
-        },
-        {
-            key: "days",
-            label: "Minimise the amount of days required",
-        },
-        {
-            key: "campus",
-            label: "Prefer a certain campus",
-            parameters: {
-                campus: {
-                    type: "text",
-                },
-            },
-        },
-        {
-            key: "week_position",
-            label: "Prefer a time of the week",
-            parameters: {
-                period: {
-                    type: "select",
-                    options: ["start", "middle", "end"],
-                },
-            },
-        },
-    ];
-
     let rankings = [];
     let parameters = {};
     $: invalid_rankings = rankings.filter(
         (r, i) => r !== null && rankings.slice(i + 1).includes(r)
     );
 
-    $: console.log(invalid_rankings);
-
     let timetables = null;
     let log = [];
     let selected_timetable = 0;
     let decoded = null;
+    let campus_options = [];
 
     $: if (
         timetables !== null &&
@@ -59,8 +28,32 @@
     $: if ($page.params.data) {
         try {
             decoded = JSON.parse(atob($page.params.data));
-        } catch {
-            result = null;
+
+            if (!Array.isArray(decoded)) throw "Decoded is not an array";
+
+            for (let subject of decoded) {
+                if (
+                    typeof subject.name !== "string" ||
+                    !Array.isArray(subject.times)
+                )
+                    throw "Malformed subject";
+
+                for (let time of subject.times) {
+                    if (
+                        typeof time.day !== "number" ||
+                        typeof time.time !== "string" ||
+                        typeof time.duration !== "number" ||
+                        typeof time.location !== "string"
+                    )
+                        throw "Malformed time";
+
+                    if (!campus_options.includes(time.location))
+                        campus_options.push(time.location);
+                }
+            }
+        } catch (e) {
+            console.log(e);
+            decoded = null;
             log = [
                 ...log,
                 "Problem decoding object or generating timetable. Please try again.",
@@ -76,6 +69,37 @@
         });
         selected_timetable = 0;
     }
+
+    $: optimisations = [
+        {
+            key: "breaks",
+            label: "Minimise the amount of time between subjects on a single day",
+        },
+        {
+            key: "days",
+            label: "Minimise the amount of days required",
+        },
+        {
+            key: "campus",
+            label: "Prefer a certain campus",
+            parameters: {
+                campus: {
+                    type: "select",
+                    options: campus_options
+                },
+            },
+        },
+        {
+            key: "week_position",
+            label: "Prefer a time of the week",
+            parameters: {
+                period: {
+                    type: "select",
+                    options: ["start", "middle", "end"],
+                },
+            },
+        },
+    ];
 </script>
 
 {#if decoded === null}
@@ -93,7 +117,7 @@
 
     <div>
         <ol id="optimisations">
-            {#each OPTIMISATIONS as _, i}
+            {#each optimisations as _, i}
                 <li>
                     <select
                         bind:value={rankings[i]}
@@ -102,7 +126,7 @@
                         <option value={null} selected>
                             Select optimisation
                         </option>
-                        {#each OPTIMISATIONS as { key }}
+                        {#each optimisations as { key }}
                             <option value={key}>
                                 {format_text(key)}
                                 {#if rankings[i] !== key && rankings.includes(key)}
@@ -112,7 +136,7 @@
                         {/each}
                     </select>
 
-                    {#each Object.entries(OPTIMISATIONS.find((o) => o.key === rankings[i])?.parameters || {}) as [key, parameter]}
+                    {#each Object.entries(optimisations.find((o) => o.key === rankings[i])?.parameters || {}) as [key, parameter]}
                         {#if parameter.type === "text"}
                             <input
                                 type="text"
@@ -134,7 +158,7 @@
         </ol>
         <div id="definitions">
             <h3>Definitions</h3>
-            {#each OPTIMISATIONS as { key, label }}
+            {#each optimisations as { key, label }}
                 <p><b>{format_text(key)}</b>: {label}</p>
             {/each}
         </div>
