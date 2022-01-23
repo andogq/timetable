@@ -1,27 +1,29 @@
 <script>
+    export let calendar_options;
     export let timetable;
 
     import { format_time, format_duration } from "$lib/format";
-
-    const CALENDAR = {
-        start: 7,
-        end: 22,
-        tick: 0.5,
-    };
 
     const DAYS = ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday"];
 
     $: contact_hours = calculate_contact_hours(timetable);
 
     let times = [];
-    $: for (let i = CALENDAR.start; i < CALENDAR.end; i += CALENDAR.tick) {
-        let hours = Math.floor(i);
-        let mins = Math.round((i % 1) * 60);
-        times.push(
-            [hours, mins]
-                .map((n) => (String(n).length < 2 ? `0${n}` : String(n)))
-                .join(":")
-        );
+    $: {
+        times = [];
+        for (
+            let i = calendar_options.start;
+            i < calendar_options.end;
+            i += calendar_options.tick
+        ) {
+            let hours = Math.floor(i);
+            let mins = Math.round((i % 1) * 60);
+            times.push(
+                [hours, mins]
+                    .map((n) => (String(n).length < 2 ? `0${n}` : String(n)))
+                    .join(":")
+            );
+        }
     }
 
     let cells = [];
@@ -35,9 +37,9 @@
 
         for (let subject of timetable) {
             let start =
-                ((subject.time % (24 * 60)) / 60 - CALENDAR.start) /
-                CALENDAR.tick;
-            let length = subject.duration / 60 / CALENDAR.tick;
+                ((subject.time / 60) - calendar_options.start) /
+                calendar_options.tick;
+            let length = subject.duration / 60 / calendar_options.tick;
             let end = start + length;
             let day = subject.day;
 

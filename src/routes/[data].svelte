@@ -5,7 +5,122 @@
 
     import Output from "$lib/components/Output.svelte";
 
-    const OPTIMISATIONS = [
+    let rankings = [];
+    let parameters = {};
+    $: invalid_rankings = rankings.filter(
+        (r, i) => r !== null && rankings.slice(i + 1).includes(r)
+    );
+
+    let timetables = null;
+    let log = [];
+    let selected_timetable = 0;
+    let decoded = null;
+    let campus_options = [];
+
+    let calendar_options = null;
+
+    $: if (
+        timetables !== null &&
+        timetables.length > 0 &&
+        selected_timetable >= timetables.length
+    ) {
+        selected_timetable = 0;
+    }
+
+    $: if ($page.params.data) {
+        try {
+            let raw = JSON.parse(atob($page.params.data));
+
+            if (!Array.isArray(raw)) throw "Decoded is not an array";
+
+            [campus_options, decoded] = raw;
+
+            decoded = decoded.map((subject) => {
+                if (
+                    // Name
+                    typeof subject[0] !== "string" ||
+                    // Times
+                    !Array.isArray(subject[1])
+                ) {
+                    throw "Malformed subject";
+                }
+
+                return {
+                    name: subject[0],
+                    times: subject[1].map((time) => {
+                        if (
+                            // Day
+                            typeof time[0] !== "number" ||
+                            // Time
+                            typeof time[1] !== "number" ||
+                            // Length
+                            typeof time[2] !== "number" ||
+                            // Campus
+                            typeof time[3] !== "number"
+                        ) {
+                            throw "Malformed time";
+                        }
+
+                        return {
+                            day: time[0],
+                            time: time[1],
+                            duration: time[2],
+                            location: campus_options[time[3]]
+                        }
+                    }),
+                };
+            });
+        } catch (e) {
+            console.error(e);
+            decoded = null;
+            log = [
+                ...log,
+                "Problem decoding object or generating timetable. Please try again.",
+            ];
+        }
+    }
+
+    function run() {
+        timetables = null;
+        
+        timetables = generate(decoded, {
+            rankings,
+            parameters,
+        });
+
+        // Determine the time characteristics for the output
+        calendar_options = {
+            start: Infinity,
+            end: 0,
+            tick: Infinity,
+        };
+
+        for (let timetable of timetables) {
+            for (let subject of timetable) {
+                for (let time of [subject.time, subject.time + subject.duration]) {
+                    if (time < calendar_options.start) {
+                        calendar_options.start = time;
+                    }
+                    if (time > calendar_options.end) {
+                        calendar_options.end = time;
+                    }
+
+                    let mins = time % 60;
+                    if (mins < calendar_options.tick) {
+                        calendar_options.tick = mins;
+                    }
+                }
+            }
+        }
+
+        calendar_options.start /= 60;
+        calendar_options.end /= 60;
+        calendar_options.tick /= 60;
+
+        selected_timetable = 0;
+    }
+
+    $: optimisations = [
         {
             key: "breaks",
             label: "Minimise the amount of time between subjects on a single day",
@@ -19,7 +134,8 @@
             label: "Prefer a certain campus",
             parameters: {
                 campus: {
-                    type: "text",
+                    type: "select",
+                    options: campus_options,
                 },
             },
         },
@@ -34,48 +150,6 @@
             },
         },
     ];
-
-    let rankings = [];
-    let parameters = {};
-    $: invalid_rankings = rankings.filter(
-        (r, i) => r !== null && rankings.slice(i + 1).includes(r)
-    );
-
-    $: console.log(invalid_rankings);
-
-    let timetables = null;
-    let log = [];
-    let selected_timetable = 0;
-    let decoded = null;
-
-    $: if (
-        timetables !== null &&
-        timetables.length > 0 &&
-        selected_timetable >= timetables.length
-    ) {
-        selected_timetable = 0;
-    }
-
-    $: if ($page.params.data) {
-        try {
-            decoded = JSON.parse(atob($page.params.data));
-        } catch {
-            result = null;
-            log = [
-                ...log,
-                "Problem decoding object or generating timetable. Please try again.",
-            ];
-        }
-    }
-
-    function run() {
-        timetables = generate(decoded, {
-            log: (message) => (log = [...log, message]),
-            rankings,
-            parameters,
-        });
-        selected_timetable = 0;
-    }
 </script>
 
 {#if decoded === null}
@@ -93,7 +167,7 @@
 
     <div>
         <ol id="optimisations">
-            {#each OPTIMISATIONS as _, i}
+            {#each optimisations as _, i}
                 <li>
                     <select
                         bind:value={rankings[i]}
@@ -102,7 +176,7 @@
                         <option value={null} selected>
                             Select optimisation
                         </option>
-                        {#each OPTIMISATIONS as { key }}
+                        {#each optimisations as { key }}
                             <option value={key}>
                                 {format_text(key)}
                                 {#if rankings[i] !== key && rankings.includes(key)}
@@ -112,7 +186,7 @@
                         {/each}
                     </select>
 
-                    {#each Object.entries(OPTIMISATIONS.find((o) => o.key === rankings[i])?.parameters || {}) as [key, parameter]}
+                    {#each Object.entries(optimisations.find((o) => o.key === rankings[i])?.parameters || {}) as [key, parameter]}
                         {#if parameter.type === "text"}
                             <input
                                 type="text"
@@ -134,7 +208,7 @@
         </ol>
         <div id="definitions">
             <h3>Definitions</h3>
-            {#each OPTIMISATIONS as { key, label }}
+            {#each optimisations as { key, label }}
                 <p><b>{format_text(key)}</b>: {label}</p>
             {/each}
         </div>
@@ -170,7 +244,10 @@
                 Next
             </button>
         </div>
-        <Output timetable={timetables[selected_timetable]} />
+        <Output
+            timetable={timetables[selected_timetable]}
+            bind:calendar_options
+        />
     {/if}
 {/if}
 
