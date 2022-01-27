@@ -1,19 +1,11 @@
-export function format_time(time) {
-    let mins_per_day = 24 * 60;
-    
-    let day = Math.floor(time / mins_per_day);
-    time = time % mins_per_day;
-    
+export function format_time(time) {    
     let hours = String(Math.floor(time / 60));
     let mins = String(time % 60);
     
     if (hours.length === 1) hours = `0${hours}`;
     if (mins.length === 1) mins = `0${mins}`;
     
-    return {
-        day,
-        time: `${hours}:${mins}`
-    }
+    return `${hours}:${mins}`;
 }
 
 export function format_duration(duration) {

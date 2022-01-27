@@ -3,7 +3,7 @@
     import generate from "$lib/generate";
     import { format_text } from "$lib/format";
 
-    import Output from "$lib/components/Output.svelte";
+    import Calendar from "$lib/components/Calendar.svelte";
 
     let rankings = [];
     let parameters = {};
@@ -16,8 +16,7 @@
     let selected_timetable = 0;
     let decoded = null;
     let campus_options = [];
-
-    let calendar_options = null;
+    let class_codes = [];
 
     $: if (
         timetables !== null &&
@@ -33,21 +32,24 @@
 
             if (!Array.isArray(raw)) throw "Decoded is not an array";
 
-            [campus_options, decoded] = raw;
+            [campus_options, class_codes, decoded] = raw;
 
             decoded = decoded.map((subject) => {
                 if (
                     // Name
                     typeof subject[0] !== "string" ||
+                    // Subject code
+                    typeof subject[1] !== "number" ||
                     // Times
-                    !Array.isArray(subject[1])
+                    !Array.isArray(subject[2])
                 ) {
                     throw "Malformed subject";
                 }
 
                 return {
                     name: subject[0],
-                    times: subject[1].map((time) => {
+                    code: class_codes[subject[1]],
+                    times: subject[2].map((time) => {
                         if (
                             // Day
                             typeof time[0] !== "number" ||
@@ -87,35 +89,6 @@
             rankings,
             parameters,
         });
-
-        // Determine the time characteristics for the output
-        calendar_options = {
-            start: Infinity,
-            end: 0,
-            tick: Infinity,
-        };
-
-        for (let timetable of timetables) {
-            for (let subject of timetable) {
-                for (let time of [subject.time, subject.time + subject.duration]) {
-                    if (time < calendar_options.start) {
-                        calendar_options.start = time;
-                    }
-                    if (time > calendar_options.end) {
-                        calendar_options.end = time;
-                    }
-
-                    let mins = time % 60;
-                    if (mins < calendar_options.tick) {
-                        calendar_options.tick = mins;
-                    }
-                }
-            }
-        }
-
-        calendar_options.start /= 60;
-        calendar_options.end /= 60;
-        calendar_options.tick /= 60;
 
         selected_timetable = 0;
     }
@@ -244,9 +217,9 @@
                 Next
             </button>
         </div>
-        <Output
+        <Calendar
             timetable={timetables[selected_timetable]}
-            bind:calendar_options
+            subjects={class_codes}
         />
     {/if}
 {/if}
