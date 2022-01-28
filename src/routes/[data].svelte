@@ -67,8 +67,8 @@
                             day: time[0],
                             time: time[1],
                             duration: time[2],
-                            location: campus_options[time[3]]
-                        }
+                            location: campus_options[time[3]],
+                        };
                     }),
                 };
             });
@@ -84,7 +84,7 @@
 
     function run() {
         timetables = null;
-        
+
         timetables = generate(decoded, {
             rankings,
             parameters,
@@ -125,106 +125,131 @@
     ];
 </script>
 
-{#if decoded === null}
-    <p>Data not found, or problem decoding data. Please try again.</p>
-{:else}
-    <p>
-        In order to generate the best possible table for your circumstance,
-        please configure the rankings of the options below. The algorithm will
-        attempt to prioritise the options from top to bottom. If you don't like
-        what you see, try change them and regenerate for other options.
-    </p>
-    <p>
-        Configure the options, and click "Generate" to generate some timetables.
-    </p>
-
-    <div>
-        <ol id="optimisations">
-            {#each optimisations as _, i}
-                <li>
-                    <select
-                        bind:value={rankings[i]}
-                        class:error={invalid_rankings.includes(rankings[i])}
-                    >
-                        <option value={null} selected>
-                            Select optimisation
-                        </option>
-                        {#each optimisations as { key }}
-                            <option value={key}>
-                                {format_text(key)}
-                                {#if rankings[i] !== key && rankings.includes(key)}
-                                    (Selected)
-                                {/if}
+<div id="container">
+    <div id="column">
+        <div id="configuration" class="card">
+            <h2>Configuration</h2>
+            <ol id="optimisations">
+                {#each optimisations as _, i}
+                    <li>
+                        <select
+                            bind:value={rankings[i]}
+                            class:error={invalid_rankings.includes(rankings[i])}
+                        >
+                            <option value={null} selected>
+                                Select optimisation
                             </option>
-                        {/each}
-                    </select>
+                            {#each optimisations as { key }}
+                                <option value={key}>
+                                    {format_text(key)}
+                                    {#if rankings[i] !== key && rankings.includes(key)}
+                                        (Selected)
+                                    {/if}
+                                </option>
+                            {/each}
+                        </select>
 
-                    {#each Object.entries(optimisations.find((o) => o.key === rankings[i])?.parameters || {}) as [key, parameter]}
-                        {#if parameter.type === "text"}
-                            <input
-                                type="text"
-                                bind:value={parameters[key]}
-                                placeholder={format_text(key)}
-                            />
-                        {:else if parameter.type === "select"}
-                            <select bind:value={parameters[key]}>
-                                {#each parameter.options as option}
-                                    <option value={option}>
-                                        {format_text(option)}
-                                    </option>
-                                {/each}
-                            </select>
-                        {/if}
-                    {/each}
-                </li>
-            {/each}
-        </ol>
-        <div id="definitions">
-            <h3>Definitions</h3>
-            {#each optimisations as { key, label }}
-                <p><b>{format_text(key)}</b>: {label}</p>
-            {/each}
+                        {#each Object.entries(optimisations.find((o) => o.key === rankings[i])?.parameters || {}) as [key, parameter]}
+                            {#if parameter.type === "text"}
+                                <input
+                                    type="text"
+                                    bind:value={parameters[key]}
+                                    placeholder={format_text(key)}
+                                />
+                            {:else if parameter.type === "select"}
+                                <select bind:value={parameters[key]}>
+                                    {#each parameter.options as option}
+                                        <option value={option}>
+                                            {format_text(option)}
+                                        </option>
+                                    {/each}
+                                </select>
+                            {/if}
+                        {/each}
+                    </li>
+                {/each}
+            </ol>
+
+            <button
+                on:click={run}
+                disabled={invalid_rankings.length !== 0 ||
+                    rankings.includes(null)}
+            >
+                Generate
+            </button>
+        </div>
+        <div id="summary" class="card">
+            <h2>Summary</h2>
+
+            {#if timetables !== null && timetables.length > 0}
+                <p>
+                    Showing timetable {selected_timetable +
+                        1}/{timetables.length}
+                </p>
+                <div id="navigation">
+                    <button
+                        on:click={() => selected_timetable--}
+                        disabled={selected_timetable === 0}
+                    >
+                        Previous
+                    </button>
+                    <button
+                        on:click={() => selected_timetable++}
+                        disabled={selected_timetable + 1 >= timetables.length}
+                    >
+                        Next
+                    </button>
+                </div>
+            {/if}
         </div>
     </div>
-
-    <button
-        on:click={run}
-        disabled={invalid_rankings.length !== 0 || rankings.includes(null)}
-    >
-        Generate
-    </button>
-{/if}
-
-{#if timetables}
-    {#if timetables.length === 0}
-        <p>
-            Unable to load any time tables. Please adjust your settings and try
-            again.
-        </p>
-    {:else}
-        <p>Showing timetable {selected_timetable + 1}/{timetables.length}</p>
-        <div id="navigation">
-            <button
-                on:click={() => selected_timetable--}
-                disabled={selected_timetable === 0}
-            >
-                Previous
-            </button>
-            <button
-                on:click={() => selected_timetable++}
-                disabled={selected_timetable + 1 >= timetables.length}
-            >
-                Next
-            </button>
-        </div>
-        <Calendar
-            timetable={timetables[selected_timetable]}
-            subjects={class_codes}
-        />
-    {/if}
-{/if}
+    <div id="result" class="card">
+        {#if timetables !== null && timetables.length > selected_timetable}
+            <Calendar
+                timetable={timetables[selected_timetable]}
+                subjects={class_codes}
+            />
+        {/if}
+    </div>
+</div>
 
 <style>
+    #container {
+        height: 100%;
+        width: 100%;
+
+        display: flex;
+        flex-direction: row;
+
+        gap: 1rem;
+        padding: 1rem;
+
+        box-sizing: border-box;
+
+        background: #dddddd;
+    }
+
+    .card {
+        background: white;
+
+        padding: 1rem;
+
+        border-radius: 10px;
+    }
+
+    #column {
+        display: flex;
+        flex-direction: column;
+
+        gap: 1rem;
+
+        width: 30%;
+    }
+
+    #result {
+        flex-grow: 1;
+    }
+
     .error {
         border: 2px solid red;
     }
