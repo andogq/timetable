@@ -7,11 +7,11 @@
     export let parameters = {};
 
     $: rankings = options.map(o => o.key);
-    $: parameters = options.reduce((obj, o) => ({
+    $: if (Object.keys(parameters).length === 0) parameters = options.reduce((obj, o) => ({
         ...obj,
         ...(Array.isArray(o.options) && o.options.length > 0 ? { [o.key]: o.options[0] } : {})
     }), {});
-    
+
     $: sorted_options = options.sort((a, b) => rankings.indexOf(a.key) - rankings.indexOf(b.key));
 
     let dragged = null;
