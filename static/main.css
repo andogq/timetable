@@ -4,7 +4,10 @@
 
     font-family: sans-serif;
 
-    --main: #ec6f2e;
+    --main: #0074D9;
+    --transition: 0.1s ease-in-out;
+    --border-radius: 10px;
+    --spacing: 1rem;
 }
 
 html, body {
@@ -25,7 +28,33 @@ p {
     margin: 0.5rem 0;
 }
 
-input, button, select {
+input, select {
     padding: 0.25rem;
     margin: 0.25rem;
+}
+
+button {
+    color: var(--main);
+    border: 2px solid var(--main);
+    border-radius: var(--border-radius);
+    background: white;
+
+    padding: 0.3rem 0.75rem;
+
+    transition: color var(--transition), background var(--transition);
+
+    cursor: pointer;
+
+    box-sizing: border-box;
+}
+
+button[disabled] {
+    color: #aaaaaa;
+    border-color: #aaaaaa;
+    cursor: default;
+}
+
+button:not([disabled]):hover {
+    color: white;
+    background: var(--main);
 }

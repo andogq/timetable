@@ -1,23 +1,21 @@
 <script>
     import { page } from "$app/stores";
     import generate from "$lib/generate";
-    import { format_text } from "$lib/format";
+    import { slide } from "svelte/transition";
 
-    import Output from "$lib/components/Output.svelte";
+    import Calendar from "$lib/components/Calendar.svelte";
+    import Order from "$lib/components/Order.svelte";
+    import links from "$lib/links";
 
     let rankings = [];
     let parameters = {};
-    $: invalid_rankings = rankings.filter(
-        (r, i) => r !== null && rankings.slice(i + 1).includes(r)
-    );
 
     let timetables = null;
     let log = [];
     let selected_timetable = 0;
     let decoded = null;
     let campus_options = [];
-
-    let calendar_options = null;
+    let class_codes = [];
 
     $: if (
         timetables !== null &&
@@ -33,21 +31,29 @@
 
             if (!Array.isArray(raw)) throw "Decoded is not an array";
 
-            [campus_options, decoded] = raw;
+            [campus_options, class_codes, decoded] = raw;
+
+            class_codes = class_codes.map(([code, name]) => ({
+                code,
+                name,
+            }));
 
             decoded = decoded.map((subject) => {
                 if (
                     // Name
                     typeof subject[0] !== "string" ||
+                    // Subject code
+                    typeof subject[1] !== "number" ||
                     // Times
-                    !Array.isArray(subject[1])
+                    !Array.isArray(subject[2])
                 ) {
                     throw "Malformed subject";
                 }
 
                 return {
                     name: subject[0],
-                    times: subject[1].map((time) => {
+                    code: class_codes[subject[1]].code,
+                    times: subject[2].map((time) => {
                         if (
                             // Day
                             typeof time[0] !== "number" ||
@@ -65,8 +71,8 @@
                             day: time[0],
                             time: time[1],
                             duration: time[2],
-                            location: campus_options[time[3]]
-                        }
+                            location: campus_options[time[3]],
+                        };
                     }),
                 };
             });
@@ -82,177 +88,184 @@
 
     function run() {
         timetables = null;
-        
+
         timetables = generate(decoded, {
             rankings,
             parameters,
         });
 
-        // Determine the time characteristics for the output
-        calendar_options = {
-            start: Infinity,
-            end: 0,
-            tick: Infinity,
-        };
-
-        for (let timetable of timetables) {
-            for (let subject of timetable) {
-                for (let time of [subject.time, subject.time + subject.duration]) {
-                    if (time < calendar_options.start) {
-                        calendar_options.start = time;
-                    }
-                    if (time > calendar_options.end) {
-                        calendar_options.end = time;
-                    }
-
-                    let mins = time % 60;
-                    if (mins < calendar_options.tick) {
-                        calendar_options.tick = mins;
-                    }
-                }
-            }
-        }
-
-        calendar_options.start /= 60;
-        calendar_options.end /= 60;
-        calendar_options.tick /= 60;
-
         selected_timetable = 0;
     }
-
-    $: optimisations = [
-        {
-            key: "breaks",
-            label: "Minimise the amount of time between subjects on a single day",
-        },
-        {
-            key: "days",
-            label: "Minimise the amount of days required",
-        },
-        {
-            key: "campus",
-            label: "Prefer a certain campus",
-            parameters: {
-                campus: {
-                    type: "select",
-                    options: campus_options,
-                },
-            },
-        },
-        {
-            key: "week_position",
-            label: "Prefer a time of the week",
-            parameters: {
-                period: {
-                    type: "select",
-                    options: ["start", "middle", "end"],
-                },
-            },
-        },
-    ];
 </script>
 
-{#if decoded === null}
-    <p>Data not found, or problem decoding data. Please try again.</p>
-{:else}
-    <p>
-        In order to generate the best possible table for your circumstance,
-        please configure the rankings of the options below. The algorithm will
-        attempt to prioritise the options from top to bottom. If you don't like
-        what you see, try change them and regenerate for other options.
-    </p>
-    <p>
-        Configure the options, and click "Generate" to generate some timetables.
-    </p>
+<div id="container">
+    <div id="column">
+        <div class="card" id="header">
+            <h1>
+                <a href="/">Timetable Generator</a>
+            </h1>
 
-    <div>
-        <ol id="optimisations">
-            {#each optimisations as _, i}
-                <li>
-                    <select
-                        bind:value={rankings[i]}
-                        class:error={invalid_rankings.includes(rankings[i])}
+            <div id="links">
+                {#each links as { label, href }}
+                    <p>
+                        <a {href}>{label}</a>
+                    </p>
+                {/each}
+            </div>
+        </div>
+
+        <div class="card">
+            <h2>Configuration</h2>
+
+            <p>
+                In order to generate the best possible table for your
+                circumstance, please configure the rankings of the options
+                below. The algorithm will attempt to prioritise the options from
+                top to bottom. If you don't like what you see, try change them
+                and regenerate for other options.
+                <br />
+                Configure the options, and click "Generate" to generate some timetables.
+            </p>
+
+            <div>
+                <Order
+                    options={[
+                        {
+                            key: "campus",
+                            options: campus_options,
+                        },
+                        {
+                            key: "days",
+                        },
+                        {
+                            key: "week_position",
+                            options: ["start", "middle", "end"],
+                        },
+                        {
+                            key: "breaks",
+                        },
+                    ]}
+                    bind:rankings
+                    bind:parameters
+                />
+            </div>
+
+            <button id="generate_button" on:click={run}> Generate </button>
+        </div>
+
+        {#if timetables !== null && timetables.length > 0}
+            <div id="summary" class="card" transition:slide>
+                <h2>Summary</h2>
+
+                <div id="navigation">
+                    <button
+                        on:click={() => selected_timetable--}
+                        disabled={selected_timetable === 0}
                     >
-                        <option value={null} selected>
-                            Select optimisation
-                        </option>
-                        {#each optimisations as { key }}
-                            <option value={key}>
-                                {format_text(key)}
-                                {#if rankings[i] !== key && rankings.includes(key)}
-                                    (Selected)
-                                {/if}
-                            </option>
-                        {/each}
-                    </select>
+                        ❮❮
+                    </button>
 
-                    {#each Object.entries(optimisations.find((o) => o.key === rankings[i])?.parameters || {}) as [key, parameter]}
-                        {#if parameter.type === "text"}
-                            <input
-                                type="text"
-                                bind:value={parameters[key]}
-                                placeholder={format_text(key)}
-                            />
-                        {:else if parameter.type === "select"}
-                            <select bind:value={parameters[key]}>
-                                {#each parameter.options as option}
-                                    <option value={option}>
-                                        {format_text(option)}
-                                    </option>
-                                {/each}
-                            </select>
-                        {/if}
-                    {/each}
-                </li>
-            {/each}
-        </ol>
-        <div id="definitions">
-            <h3>Definitions</h3>
-            {#each optimisations as { key, label }}
-                <p><b>{format_text(key)}</b>: {label}</p>
-            {/each}
-        </div>
+                    <p>{selected_timetable + 1}/{timetables.length}</p>
+
+                    <button
+                        on:click={() => selected_timetable++}
+                        disabled={selected_timetable + 1 >= timetables.length}
+                    >
+                        ❯❯
+                    </button>
+                </div>
+            </div>
+        {/if}
     </div>
-
-    <button
-        on:click={run}
-        disabled={invalid_rankings.length !== 0 || rankings.includes(null)}
-    >
-        Generate
-    </button>
-{/if}
-
-{#if timetables}
-    {#if timetables.length === 0}
-        <p>
-            Unable to load any time tables. Please adjust your settings and try
-            again.
-        </p>
-    {:else}
-        <p>Showing timetable {selected_timetable + 1}/{timetables.length}</p>
-        <div id="navigation">
-            <button
-                on:click={() => selected_timetable--}
-                disabled={selected_timetable === 0}
-            >
-                Previous
-            </button>
-            <button
-                on:click={() => selected_timetable++}
-                disabled={selected_timetable + 1 >= timetables.length}
-            >
-                Next
-            </button>
-        </div>
-        <Output
-            timetable={timetables[selected_timetable]}
-            bind:calendar_options
-        />
-    {/if}
-{/if}
+    <div id="result" class="card">
+        {#if timetables !== null && timetables.length > selected_timetable}
+            <Calendar
+                timetable={timetables[selected_timetable]}
+                subjects={class_codes}
+            />
+        {/if}
+    </div>
+</div>
 
 <style>
-    .error {
-        border: 2px solid red;
+    #container {
+        height: 100%;
+        width: 100%;
+
+        display: flex;
+        flex-direction: row;
+
+        gap: var(--spacing);
+        padding: var(--spacing);
+
+        box-sizing: border-box;
+
+        background: #dddddd;
+    }
+
+    .card {
+        background: white;
+
+        padding: var(--spacing);
+
+        border-radius: var(--border-radius);
+    }
+
+    .card > p {
+        font-size: 0.85rem;
+    }
+
+    .card > *:not(:last-child) {
+        margin-bottom: var(--spacing);
+    }
+
+    #column {
+        display: flex;
+        flex-direction: column;
+
+        gap: var(--spacing);
+
+        width: 20%;
+        max-width: 25rem;
+    }
+
+    #result {
+        flex-grow: 1;
+        position: relative;
+    }
+
+    #generate_button {
+        width: 100%;
+        margin: 0;
+    }
+
+    #navigation {
+        display: flex;
+        flex-direction: row;
+        justify-content: space-between;
+        align-items: center;
+    }
+
+    #header {
+        text-align: center;
+    }
+
+    #header > h1 > a {
+        text-decoration: none;
+        color: black;
+    }
+
+    #links {
+        display: flex;
+        flex-direction: row;
+        justify-content: center;
+    }
+
+    #links > p {
+        padding: 0 1rem;
+    }
+
+    #links > p:not(:last-child) {
+        border-right: 2px dashed black;
     }
 </style>

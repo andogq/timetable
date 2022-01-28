@@ -21,11 +21,21 @@
     async function run() {
         console.log("Running");
 
-        let classes = [];
         let campus_options = [];
+        let class_codes = [];
+        let classes = [];
 
         for (let course of Object.values(window.data.student.student_enrolment)) {
             console.log(`Downloading ${course.description}`);
+
+            if (!class_codes.includes(course.callista_code)) {
+                class_codes.push([
+                    // Code
+                    course.callista_code,
+                    // Name
+                    course.description
+                ]);
+            }
 
             for (let group of Object.values(course.groups)) {
                 console.log(`Downloading group ${group.description}`);
@@ -38,10 +48,14 @@
 
                     let subject = [
                         // Name
-                        [course.description, group.description].join(" "),
+                        group.description,
+                        // Subject Code,
+                        class_codes.findIndex(c => c[0] === course.callista_code),
                         // Times
                         Object.values(body).map(time => {
-                            if (!campus_options.includes(time.campus_description)) campus_options.push(time.campus_description);
+                            if (!campus_options.includes(time.campus_description)) {
+                                campus_options.push(time.campus_description);
+                            }
                             
                             let campus_id = campus_options.indexOf(time.campus_description);
                             
@@ -65,7 +79,7 @@
             }
         }
 
-        let encoded_data = btoa(JSON.stringify([campus_options, classes]));
+        let encoded_data = btoa(JSON.stringify([campus_options, class_codes, classes]));
 
         window.open(`${window.ando_generator_url}/${encoded_data}`, "_blank").focus();
     }

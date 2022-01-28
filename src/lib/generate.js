@@ -7,7 +7,11 @@ const DAYS = [
 ];
 
 function permutate(options) {
-    if (options.length === 1) return options[0].times.map(time => [{ name: options[0].name, ...time }]);
+    if (options.length === 1) return options[0].times.map(time => [{
+        name: options[0].name,
+        code: options[0].code,
+        ...time
+    }]);
     else {
         let target = options[0];
         options = permutate(options.slice(1));
@@ -18,6 +22,7 @@ function permutate(options) {
             for (let o of options) {
                 result.push([{
                     name: target.name,
+                    code: target.code,
                     ...time
                 }, ...o]);
             }
