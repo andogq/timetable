@@ -1,15 +1,6 @@
 <script>
     import Bookmarklet from "$lib/components/Bookmarklet.svelte";
-    const links = [
-        {
-            label: "Github",
-            href: "https://github.com/andogq",
-        },
-        {
-            label: "Twitter",
-            href: "https://twitter.com/andogq",
-        },
-    ];
+    import links from "$lib/links";
 </script>
 
 <div id="container">

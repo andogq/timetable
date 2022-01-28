@@ -152,7 +152,7 @@
         display: flex;
         flex-direction: row;
 
-        gap: 1rem;
+        gap: var(--spacing);
     }
 
     #ticks {
@@ -196,6 +196,6 @@
         box-sizing: border-box;
 
         padding: 0.75rem;
-        border-radius: 10px;
+        border-radius: var(--border-radius);
     }
 </style>

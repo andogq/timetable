@@ -31,6 +31,7 @@
         text-decoration: none;
 
         border: 2px solid var(--main);
+        border-radius: var(--border-radius);
 
         width: fit-content;
         padding: 2rem;

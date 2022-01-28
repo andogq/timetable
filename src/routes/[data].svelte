@@ -1,15 +1,14 @@
 <script>
     import { page } from "$app/stores";
     import generate from "$lib/generate";
-    import { format_text } from "$lib/format";
+    import { slide } from "svelte/transition";
 
     import Calendar from "$lib/components/Calendar.svelte";
+    import Order from "$lib/components/Order.svelte";
+    import links from "$lib/links";
 
     let rankings = [];
     let parameters = {};
-    $: invalid_rankings = rankings.filter(
-        (r, i) => r !== null && rankings.slice(i + 1).includes(r)
-    );
 
     let timetables = null;
     let log = [];
@@ -34,6 +33,11 @@
 
             [campus_options, class_codes, decoded] = raw;
 
+            class_codes = class_codes.map(([code, name]) => ({
+                code,
+                name,
+            }));
+
             decoded = decoded.map((subject) => {
                 if (
                     // Name
@@ -48,7 +52,7 @@
 
                 return {
                     name: subject[0],
-                    code: class_codes[subject[1]],
+                    code: class_codes[subject[1]].code,
                     times: subject[2].map((time) => {
                         if (
                             // Day
@@ -92,116 +96,86 @@
 
         selected_timetable = 0;
     }
-
-    $: optimisations = [
-        {
-            key: "breaks",
-            label: "Minimise the amount of time between subjects on a single day",
-        },
-        {
-            key: "days",
-            label: "Minimise the amount of days required",
-        },
-        {
-            key: "campus",
-            label: "Prefer a certain campus",
-            parameters: {
-                campus: {
-                    type: "select",
-                    options: campus_options,
-                },
-            },
-        },
-        {
-            key: "week_position",
-            label: "Prefer a time of the week",
-            parameters: {
-                period: {
-                    type: "select",
-                    options: ["start", "middle", "end"],
-                },
-            },
-        },
-    ];
 </script>
 
 <div id="container">
     <div id="column">
-        <div id="configuration" class="card">
-            <h2>Configuration</h2>
-            <ol id="optimisations">
-                {#each optimisations as _, i}
-                    <li>
-                        <select
-                            bind:value={rankings[i]}
-                            class:error={invalid_rankings.includes(rankings[i])}
-                        >
-                            <option value={null} selected>
-                                Select optimisation
-                            </option>
-                            {#each optimisations as { key }}
-                                <option value={key}>
-                                    {format_text(key)}
-                                    {#if rankings[i] !== key && rankings.includes(key)}
-                                        (Selected)
-                                    {/if}
-                                </option>
-                            {/each}
-                        </select>
+        <div class="card" id="header">
+            <h1>
+                <a href="/">Timetable Generator</a>
+            </h1>
 
-                        {#each Object.entries(optimisations.find((o) => o.key === rankings[i])?.parameters || {}) as [key, parameter]}
-                            {#if parameter.type === "text"}
-                                <input
-                                    type="text"
-                                    bind:value={parameters[key]}
-                                    placeholder={format_text(key)}
-                                />
-                            {:else if parameter.type === "select"}
-                                <select bind:value={parameters[key]}>
-                                    {#each parameter.options as option}
-                                        <option value={option}>
-                                            {format_text(option)}
-                                        </option>
-                                    {/each}
-                                </select>
-                            {/if}
-                        {/each}
-                    </li>
+            <div id="links">
+                {#each links as { label, href }}
+                    <p>
+                        <a {href}>{label}</a>
+                    </p>
                 {/each}
-            </ol>
-
-            <button
-                on:click={run}
-                disabled={invalid_rankings.length !== 0 ||
-                    rankings.includes(null)}
-            >
-                Generate
-            </button>
+            </div>
         </div>
-        <div id="summary" class="card">
-            <h2>Summary</h2>
 
-            {#if timetables !== null && timetables.length > 0}
-                <p>
-                    Showing timetable {selected_timetable +
-                        1}/{timetables.length}
-                </p>
+        <div class="card">
+            <h2>Configuration</h2>
+
+            <p>
+                In order to generate the best possible table for your
+                circumstance, please configure the rankings of the options
+                below. The algorithm will attempt to prioritise the options from
+                top to bottom. If you don't like what you see, try change them
+                and regenerate for other options.
+                <br />
+                Configure the options, and click "Generate" to generate some timetables.
+            </p>
+
+            <div>
+                <Order
+                    options={[
+                        {
+                            key: "campus",
+                            options: campus_options,
+                        },
+                        {
+                            key: "days",
+                        },
+                        {
+                            key: "week_position",
+                            options: ["start", "middle", "end"],
+                        },
+                        {
+                            key: "breaks",
+                        },
+                    ]}
+                    bind:rankings
+                    bind:parameters
+                />
+            </div>
+
+            <button id="generate_button" on:click={run}> Generate </button>
+        </div>
+
+        {#if timetables !== null && timetables.length > 0}
+            <div id="summary" class="card" transition:slide>
+                <h2>Summary</h2>
+
                 <div id="navigation">
                     <button
                         on:click={() => selected_timetable--}
                         disabled={selected_timetable === 0}
                     >
-                        Previous
+                        ❮❮
                     </button>
+
+                    <p>{selected_timetable + 1}/{timetables.length}</p>
+
                     <button
                         on:click={() => selected_timetable++}
                         disabled={selected_timetable + 1 >= timetables.length}
                     >
-                        Next
+                        ❯❯
                     </button>
                 </div>
-            {/if}
-        </div>
+            </div>
+        {/if}
     </div>
     <div id="result" class="card">
         {#if timetables !== null && timetables.length > selected_timetable}
@@ -221,8 +195,8 @@
         display: flex;
         flex-direction: row;
 
-        gap: 1rem;
-        padding: 1rem;
+        gap: var(--spacing);
+        padding: var(--spacing);
 
         box-sizing: border-box;
 
@@ -232,25 +206,66 @@
     .card {
         background: white;
 
-        padding: 1rem;
+        padding: var(--spacing);
 
-        border-radius: 10px;
+        border-radius: var(--border-radius);
+    }
+
+    .card > p {
+        font-size: 0.85rem;
+    }
+
+    .card > *:not(:last-child) {
+        margin-bottom: var(--spacing);
     }
 
     #column {
         display: flex;
         flex-direction: column;
 
-        gap: 1rem;
+        gap: var(--spacing);
 
-        width: 30%;
+        width: 20%;
+        max-width: 25rem;
     }
 
     #result {
         flex-grow: 1;
+        position: relative;
     }
 
-    .error {
-        border: 2px solid red;
+    #generate_button {
+        width: 100%;
+        margin: 0;
+    }
+
+    #navigation {
+        display: flex;
+        flex-direction: row;
+        justify-content: space-between;
+        align-items: center;
+    }
+
+    #header {
+        text-align: center;
+    }
+
+    #header > h1 > a {
+        text-decoration: none;
+        color: black;
+    }
+
+    #links {
+        display: flex;
+        flex-direction: row;
+        justify-content: center;
+    }
+
+    #links > p {
+        padding: 0 1rem;
+    }
+
+    #links > p:not(:last-child) {
+        border-right: 2px dashed black;
     }
 </style>

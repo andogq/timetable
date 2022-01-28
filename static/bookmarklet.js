@@ -29,7 +29,12 @@
             console.log(`Downloading ${course.description}`);
 
             if (!class_codes.includes(course.callista_code)) {
-                class_codes.push(course.callista_code);
+                class_codes.push([
+                    // Code
+                    course.callista_code,
+                    // Name
+                    course.description
+                ]);
             }
 
             for (let group of Object.values(course.groups)) {
@@ -43,9 +48,9 @@
 
                     let subject = [
                         // Name
-                        [course.description, group.description].join(" "),
+                        group.description,
                         // Subject Code,
-                        class_codes.indexOf(course.callista_code),
+                        class_codes.findIndex(c => c[0] === course.callista_code),
                         // Times
                         Object.values(body).map(time => {
                             if (!campus_options.includes(time.campus_description)) {

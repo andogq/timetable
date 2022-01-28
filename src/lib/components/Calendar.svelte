@@ -91,6 +91,8 @@
             end: 0,
         }
     );
+
+    $: console.log(days);
 </script>
 
 <div id="calendar">
@@ -122,13 +124,14 @@
                             (times.end - times.start)) *
                             100}% + {SUBJECT_PADDING}rem)"
                         style:background={PALETTE[
-                            subjects.indexOf(subject.code) % PALETTE.length
+                            subjects.findIndex(s => s.code === subject.code) % PALETTE.length
                         ].color}
                         style:color={PALETTE[
-                            subjects.indexOf(subject.code) % PALETTE.length
+                            subjects.findIndex(s => s.code === subject.code) % PALETTE.length
                         ].text}
                     >
-                        <h4>{subject.name}</h4>
+                        <h5>{subjects.find(s => s.code === subject.code).name} ({subject.code})</h5>
+                        <p>{subject.name}</p>
                         <p>
                             {format_time(subject.time)} - {format_time(
                                 subject.time + subject.duration
@@ -146,15 +149,14 @@
         height: 100%;
         width: 100%;
 
-        display: flex;
-        flex-direction: row;
+        display: grid;
+        grid-template-columns: repeat(5, 1fr);
+        grid-template-rows: 1fr;
 
-        gap: 1rem;
+        gap: var(--spacing);
     }
 
     .day {
-        flex-grow: 1;
-
         height: 100%;
 
         display: flex;
@@ -197,18 +199,23 @@
         box-sizing: border-box;
 
         padding: 0.75rem;
-        border-radius: 10px;
+        border-radius: var(--border-radius);
 
         display: flex;
         flex-direction: column;
     }
 
-    .subject > h4 {
+    .subject > * {
+        margin: 0.1rem 0;
+    }
+
+    .subject > h5 {
         flex-shrink: 1;
         overflow: hidden;
     }
 
     .subject > p {
         flex-shrink: 0;
+        font-size: 0.9rem;
     }
 </style>
