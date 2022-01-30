@@ -90,13 +90,13 @@ const PENALTIES = {
         return days.length
     },
     "campus": (timetable, options) => {
-        let location_count = 0;
+        let campus_count = 0;
 
         for (let subject of timetable) {
-            if (subject.campus === options.campus) location_count++;
+            if (subject.campus === options.campus) campus_count++;
         }
 
-        return -location_count;
+        return -campus_count;
     }
 }
 

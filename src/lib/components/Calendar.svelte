@@ -91,8 +91,6 @@
             end: 0,
         }
     );
-
-    $: console.log(days);
 </script>
 
 <div id="calendar">
@@ -132,7 +130,7 @@
                     >
                         <h5>{subjects.find(s => s.code === subject.code).name} ({subject.code})</h5>
                         <p>{subject.name}</p>
-                        <p>{subject.location}</p>
+                        <p>{subject.campus}</p>
                         <p>
                             {format_time(subject.time)} - {format_time(
                                 subject.time + subject.duration

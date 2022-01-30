@@ -71,7 +71,7 @@
                             day: time[0],
                             time: time[1],
                             duration: time[2],
-                            location: campus_options[time[3]],
+                            campus: campus_options[time[3]],
                         };
                     }),
                 };
