@@ -12,8 +12,10 @@
         let url = new URL(window.location.href);
         let token = url.searchParams.get(TOKEN_NAME);
 
+        let path_base = window.location.pathname.split("/").slice(0, -1).join("/");
+
         return new URL(
-            `/even/rest/student/${window.data.student.student_code}/subject/${subject}/group/${group}/activities/?${TOKEN_NAME}=${token}`,
+            `${path_base}/rest/student/${window.data.student.student_code}/subject/${subject}/group/${group}/activities/?${TOKEN_NAME}=${token}`,
             window.location.origin
         );
     }
