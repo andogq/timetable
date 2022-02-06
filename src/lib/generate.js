@@ -96,6 +96,15 @@ const PENALTIES = {
         }
 
         return -campus_count;
+    },
+    "popularity": (timetable, options) => {
+        if (options.popularity === "Lowest Average") {
+            let total_popularity = timetable.reduce((total, subject) => total + subject.popularity, 0);
+            return total_popularity / timetable.length
+        } else if (options.popularity === "Below 100%") {
+            let total_below = timetable.reduce((total, subject) => total + (subject.popularity >= 100 ? 1 : 0), 0);
+            return total_below;
+        }
     }
 }
 
