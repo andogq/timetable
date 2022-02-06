@@ -70,7 +70,7 @@
 
         if (isFinite(total) && isFinite(breaks)) {
             let summary = format_duration(total);
-            
+
             if (breaks > 0) summary += ` (${format_duration(breaks)} break)`;
 
             return summary;
@@ -91,8 +91,6 @@
             end: 0,
         }
     );
-
-    $: console.log(days);
 </script>
 
 <div id="calendar">
@@ -109,7 +107,8 @@
                     {/each}
                     {#if (times.end - times.start) % 60 > 0}
                         <div
-                            style:flex-grow={((times.end - times.start) / 60) % 1}
+                            style:flex-grow={((times.end - times.start) / 60) %
+                                1}
                         />
                     {/if}
                 </div>
@@ -124,15 +123,24 @@
                             (times.end - times.start)) *
                             100}% + {SUBJECT_PADDING}rem)"
                         style:background={PALETTE[
-                            subjects.findIndex(s => s.code === subject.code) % PALETTE.length
+                            subjects.findIndex((s) => s.code === subject.code) %
+                                PALETTE.length
                         ].color}
                         style:color={PALETTE[
-                            subjects.findIndex(s => s.code === subject.code) % PALETTE.length
+                            subjects.findIndex((s) => s.code === subject.code) %
+                                PALETTE.length
                         ].text}
                     >
-                        <h5>{subjects.find(s => s.code === subject.code).name} ({subject.code})</h5>
-                        <p>{subject.name}</p>
-                        <p>{subject.location}</p>
+                        <h5>
+                            {subjects.find((s) => s.code === subject.code).name}
+                            ({subject.code})
+                        </h5>
+                        <p>
+                            {subject.name}, {subject.campus}
+                            {subject.popularity !== null
+                                ? `(${subject.popularity}%)`
+                                : ""}
+                        </p>
                         <p>
                             {format_time(subject.time)} - {format_time(
                                 subject.time + subject.duration

@@ -21,8 +21,7 @@ function permutate(options) {
         for (let time of target.times) {
             for (let o of options) {
                 result.push([{
-                    name: target.name,
-                    code: target.code,
+                    ...target,
                     ...time
                 }, ...o]);
             }
@@ -90,13 +89,22 @@ const PENALTIES = {
         return days.length
     },
     "campus": (timetable, options) => {
-        let location_count = 0;
+        let campus_count = 0;
 
         for (let subject of timetable) {
-            if (subject.campus === options.campus) location_count++;
+            if (subject.campus === options.campus) campus_count++;
         }
 
-        return -location_count;
+        return -campus_count;
+    },
+    "popularity": (timetable, options) => {
+        if (options.popularity === "Lowest Average") {
+            let total_popularity = timetable.reduce((total, subject) => total + subject.popularity, 0);
+            return total_popularity / timetable.length
+        } else if (options.popularity === "Below 100%") {
+            let total_below = timetable.reduce((total, subject) => total + (subject.popularity >= 100 ? 1 : 0), 0);
+            return total_below;
+        }
     }
 }
 

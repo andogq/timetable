@@ -13,9 +13,13 @@
     let timetables = null;
     let log = [];
     let selected_timetable = 0;
+    let selected_semester = undefined;
+    
     let decoded = null;
+    
     let campus_options = [];
     let class_codes = [];
+    let semester_options = [];
 
     $: if (
         timetables !== null &&
@@ -25,13 +29,17 @@
         selected_timetable = 0;
     }
 
+    $: if (semester_options.length === 1) {
+        selected_semester = semester_options[0];
+    } else if (semester_options.length === 0) selected_semester = undefined;
+
     $: if ($page.params.data) {
         try {
             let raw = JSON.parse(atob($page.params.data));
 
             if (!Array.isArray(raw)) throw "Decoded is not an array";
 
-            [campus_options, class_codes, decoded] = raw;
+            [campus_options, class_codes, semester_options, decoded] = raw;
 
             class_codes = class_codes.map(([code, name]) => ({
                 code,
@@ -44,8 +52,10 @@
                     typeof subject[0] !== "string" ||
                     // Subject code
                     typeof subject[1] !== "number" ||
+                    // Semester
+                    typeof subject[2] !== "number" ||
                     // Times
-                    !Array.isArray(subject[2])
+                    !Array.isArray(subject[3])
                 ) {
                     throw "Malformed subject";
                 }
@@ -53,7 +63,8 @@
                 return {
                     name: subject[0],
                     code: class_codes[subject[1]].code,
-                    times: subject[2].map((time) => {
+                    semester: semester_options[subject[2]],
+                    times: subject[3].map((time) => {
                         if (
                             // Day
                             typeof time[0] !== "number" ||
@@ -62,7 +73,9 @@
                             // Length
                             typeof time[2] !== "number" ||
                             // Campus
-                            typeof time[3] !== "number"
+                            typeof time[3] !== "number" ||
+                            // Popularity
+                            !(typeof time[4] === "number" || time[4] === null)
                         ) {
                             throw "Malformed time";
                         }
@@ -71,7 +84,8 @@
                             day: time[0],
                             time: time[1],
                             duration: time[2],
-                            location: campus_options[time[3]],
+                            campus: campus_options[time[3]],
+                            popularity: time[4]
                         };
                     }),
                 };
@@ -89,7 +103,7 @@
     function run() {
         timetables = null;
 
-        timetables = generate(decoded, {
+        timetables = generate(decoded.filter(s => s.semester === selected_semester), {
             rankings,
             parameters,
         });
@@ -138,17 +152,31 @@
                             key: "days",
                         },
                         {
-                            key: "week_position",
-                            options: ["start", "middle", "end"],
+                            key: "breaks"
                         },
                         {
-                            key: "breaks",
+                            key: "popularity",
+                            options: [
+                                "Lowest Average",
+                                "Below 100%"
+                            ]
                         },
                     ]}
                     bind:rankings
                     bind:parameters
                 />
             </div>
+
+            {#if semester_options.length > 1}
+                <div id="select_semester">
+                    <p>Select Semester</p>
+                    <select bind:value={selected_semester}>
+                        {#each semester_options as semester}
+                            <option>{semester}</option>
+                        {/each}
+                    </select>
+                </div>
+            {/if}
 
             <button id="generate_button" on:click={run}> Generate </button>
         </div>
@@ -267,5 +295,36 @@
 
     #links > p:not(:last-child) {
         border-right: 2px dashed black;
+    }
+
+    #select_semester {
+        border: 1px solid #aaaaaa;
+        border-radius: var(--border-radius);
+
+        user-select: none;
+        padding: 0.5rem;
+
+        display: flex;
+        flex-direction: row;
+        justify-content: space-between;
+        align-items: center;
+
+        font-size: 0.9rem;
+    }
+
+    #select_semester > select {
+        background: none;
+        border: none;
+        
+        padding: 0;
+        margin: 0;
+
+        cursor: pointer;
+
+        text-align: right;
+    }
+
+    #select_semester > p {
+        margin: 0;
     }
 </style>
