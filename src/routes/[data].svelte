@@ -152,11 +152,14 @@
                             key: "days",
                         },
                         {
-                            key: "week_position",
-                            options: ["start", "middle", "end"],
+                            key: "breaks"
                         },
                         {
-                            key: "breaks",
+                            key: "popularity",
+                            options: [
+                                "Lowest Average",
+                                "Below 100%"
+                            ]
                         },
                     ]}
                     bind:rankings
