@@ -13,7 +13,10 @@
     let timetables = null;
     let log = [];
     let selected_timetable = 0;
+    let selected_semester = undefined;
+    
     let decoded = null;
+    
     let campus_options = [];
     let class_codes = [];
     let semester_options = [];
@@ -25,6 +28,10 @@
     ) {
         selected_timetable = 0;
     }
+
+    $: if (semester_options.length === 1) {
+        selected_semester = semester_options[0];
+    } else if (semester_options.length === 0) selected_semester = undefined;
 
     $: if ($page.params.data) {
         try {
@@ -96,7 +103,7 @@
     function run() {
         timetables = null;
 
-        timetables = generate(decoded, {
+        timetables = generate(decoded.filter(s => s.semester === selected_semester), {
             rankings,
             parameters,
         });
@@ -156,6 +163,17 @@
                     bind:parameters
                 />
             </div>
+
+            {#if semester_options.length > 1}
+                <div id="select_semester">
+                    <p>Select Semester</p>
+                    <select bind:value={selected_semester}>
+                        {#each semester_options as semester}
+                            <option>{semester}</option>
+                        {/each}
+                    </select>
+                </div>
+            {/if}
 
             <button id="generate_button" on:click={run}> Generate </button>
         </div>
@@ -274,5 +292,36 @@
 
     #links > p:not(:last-child) {
         border-right: 2px dashed black;
+    }
+
+    #select_semester {
+        border: 1px solid #aaaaaa;
+        border-radius: var(--border-radius);
+
+        user-select: none;
+        padding: 0.5rem;
+
+        display: flex;
+        flex-direction: row;
+        justify-content: space-between;
+        align-items: center;
+
+        font-size: 0.9rem;
+    }
+
+    #select_semester > select {
+        background: none;
+        border: none;
+        
+        padding: 0;
+        margin: 0;
+
+        cursor: pointer;
+
+        text-align: right;
+    }
+
+    #select_semester > p {
+        margin: 0;
     }
 </style>

@@ -159,5 +159,7 @@
         margin: 0;
 
         cursor: pointer;
+
+        text-align: right;
     }
 </style>
