@@ -20,8 +20,43 @@
         );
     }
 
+    function create_window() {
+        let container = document.createElement("div");
+
+        // Container styling
+        container.style.position = "fixed";
+        container.style.top = "0";
+        container.style.left = "0";
+        container.style.right = "0";
+        container.style.bottom = "0";
+        container.style.background = "rgba(0, 0, 0, 0.5)";
+        container.style.zIndex = "1000";
+        container.style.display = "flex";
+        container.style.justifyContent = "space-around";
+        container.style.alignItems = "center";
+
+        let loader = document.createElement("div");
+        loader.style.padding = "5%";
+        loader.innerText = "Loading...";
+        loader.style.background = "white";
+        loader.style.fontFamily = "sans-serif";
+
+        container.append(loader);
+        document.body.append(container);
+
+        return () => {
+            container.remove();
+        }
+    }
+
     async function run() {
         console.log("Running");
+
+        let close = create_window();
+
+        // Determine available semesters
+        console.log("Available Semesters");
+        console.log(window.data.student.student_enrolment);
 
         let campus_options = [];
         let class_codes = [];
@@ -84,6 +119,8 @@
         let encoded_data = btoa(JSON.stringify([campus_options, class_codes, classes]));
 
         window.open(`${window.ando_generator_url}/${encoded_data}`, "_blank").focus();
+
+        close();
     }
 
     run();
