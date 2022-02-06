@@ -16,6 +16,7 @@
     let decoded = null;
     let campus_options = [];
     let class_codes = [];
+    let semester_options = [];
 
     $: if (
         timetables !== null &&
@@ -31,7 +32,7 @@
 
             if (!Array.isArray(raw)) throw "Decoded is not an array";
 
-            [campus_options, class_codes, decoded] = raw;
+            [campus_options, class_codes, semester_options, decoded] = raw;
 
             class_codes = class_codes.map(([code, name]) => ({
                 code,
@@ -44,8 +45,10 @@
                     typeof subject[0] !== "string" ||
                     // Subject code
                     typeof subject[1] !== "number" ||
+                    // Semester
+                    typeof subject[2] !== "number" ||
                     // Times
-                    !Array.isArray(subject[2])
+                    !Array.isArray(subject[3])
                 ) {
                     throw "Malformed subject";
                 }
@@ -53,7 +56,8 @@
                 return {
                     name: subject[0],
                     code: class_codes[subject[1]].code,
-                    times: subject[2].map((time) => {
+                    semester: semester_options[subject[2]],
+                    times: subject[3].map((time) => {
                         if (
                             // Day
                             typeof time[0] !== "number" ||

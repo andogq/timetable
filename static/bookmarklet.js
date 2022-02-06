@@ -63,6 +63,7 @@
 
         let campus_options = [];
         let class_codes = [];
+        let semester_options = [];
         let classes = [];
 
         for (let course of Object.values(window.data.student.student_enrolment)) {
@@ -73,8 +74,12 @@
                     // Code
                     course.callista_code,
                     // Name
-                    course.description
+                    course.description,
                 ]);
+            }
+
+            if (!semester_options.includes(course.semester_description)) {
+                semester_options.push(course.semester_description);
             }
 
             for (let group of Object.values(course.groups)) {
@@ -99,6 +104,8 @@
                         group.description,
                         // Subject Code,
                         class_codes.findIndex(c => c[0] === course.callista_code),
+                        // Semester
+                        semester_options.indexOf(course.semester_description),
                         // Times
                         Object.values(activities).map((time, i) => {
                             if (!campus_options.includes(time.campus_description)) {
@@ -129,7 +136,7 @@
             }
         }
 
-        let encoded_data = btoa(JSON.stringify([campus_options, class_codes, classes]));
+        let encoded_data = btoa(JSON.stringify([campus_options, class_codes, semester_options, classes]));
 
         window.open(`${window.ando_generator_url}/${encoded_data}`, "_blank").focus();
 

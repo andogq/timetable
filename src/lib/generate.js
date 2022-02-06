@@ -21,8 +21,7 @@ function permutate(options) {
         for (let time of target.times) {
             for (let o of options) {
                 result.push([{
-                    name: target.name,
-                    code: target.code,
+                    ...target,
                     ...time
                 }, ...o]);
             }
