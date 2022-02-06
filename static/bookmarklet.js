@@ -134,7 +134,9 @@
                                     // Campus
                                     campus_id,
                                     // Popularities
-                                    popularities !== null ? popularities[`activity: ${time.activity_code}`].popularity : null
+                                    popularities !== null ? (
+                                        popularities[`activity: ${time.activity_code}`]?.popularity ?? null
+                                    ) : null
                                 ];
                             })
                         ];
