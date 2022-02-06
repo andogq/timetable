@@ -62,7 +62,9 @@
                             // Length
                             typeof time[2] !== "number" ||
                             // Campus
-                            typeof time[3] !== "number"
+                            typeof time[3] !== "number" ||
+                            // Popularity
+                            !(typeof time[4] === "number" || time[4] === null)
                         ) {
                             throw "Malformed time";
                         }
@@ -72,6 +74,7 @@
                             time: time[1],
                             duration: time[2],
                             campus: campus_options[time[3]],
+                            popularity: time[4]
                         };
                     }),
                 };

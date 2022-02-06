@@ -8,16 +8,19 @@
         "Friday"
     ];
 
-    function generate_url(subject, group) {
+    function generate_urls(subject, group) {
         let url = new URL(window.location.href);
         let token = url.searchParams.get(TOKEN_NAME);
 
         let path_base = window.location.pathname.split("/").slice(0, -1).join("/");
 
-        return new URL(
-            `${path_base}/rest/student/${window.data.student.student_code}/subject/${subject}/group/${group}/activities/?${TOKEN_NAME}=${token}`,
-            window.location.origin
-        );
+        return ["activities", "popularitiess"].reduce((obj, type) => ({
+            ...obj,
+            [type]: new URL(
+                `${path_base}/rest/student/${window.data.student.student_code}/subject/${subject}/group/${group}/${type}/?${TOKEN_NAME}=${token}`,
+                window.location.origin
+            )
+        }), {});
     }
 
     function create_window() {
@@ -77,11 +80,19 @@
             for (let group of Object.values(course.groups)) {
                 console.log(`Downloading group ${group.description}`);
 
-                let url = generate_url(course.subject_code, group.activity_group_code);
+                let {
+                    activities: activities_url,
+                    popularitiess: popularities_url
+                } = generate_urls(course.subject_code, group.activity_group_code);
 
-                let request = await fetch(url);
-                if (request.status === 200) {
-                    let body = await request.json();
+                let [activities_request, popularities_request] = await Promise.all([
+                    fetch(activities_url),
+                    fetch(popularities_url)
+                ]);
+                
+                if (activities_request.status === 200) {
+                    let activities = await activities_request.json();
+                    let popularities = popularities_request.status === 200 ? await popularities_request.json() : null;
 
                     let subject = [
                         // Name
@@ -89,7 +100,7 @@
                         // Subject Code,
                         class_codes.findIndex(c => c[0] === course.callista_code),
                         // Times
-                        Object.values(body).map(time => {
+                        Object.values(activities).map((time, i) => {
                             if (!campus_options.includes(time.campus_description)) {
                                 campus_options.push(time.campus_description);
                             }
@@ -100,13 +111,15 @@
                                 // Day
                                 DAYS.indexOf(DAYS.find(d => d.indexOf(time.day_of_week) === 0)),
                                 // Time
-                                time.start_time.split(":").reduce((total, n, i) => (
-                                    total + (Number(n) * [60, 1][i])
+                                time.start_time.split(":").reduce((total, n, j) => (
+                                    total + (Number(n) * [60, 1][j])
                                 ), 0),
                                 // Length
                                 Number(time.duration),
                                 // Campus
-                                campus_id
+                                campus_id,
+                                // Popularities
+                                popularities !== null ? popularities[`activity: ${time.activity_code}`].popularity : null
                             ];
                         })
                     ];
