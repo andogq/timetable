@@ -107,8 +107,7 @@
                     {/each}
                     {#if (times.end - times.start) % 60 > 0}
                         <div
-                            style:flex-grow={((times.end - times.start) / 60) %
-                                1}
+                            style:flex-grow={((times.end - times.start) / 60) % 1}
                         />
                     {/if}
                 </div>
@@ -212,6 +211,8 @@
 
         display: flex;
         flex-direction: column;
+
+        overflow: scroll;
     }
 
     .subject > * {
@@ -219,12 +220,10 @@
     }
 
     .subject > h5 {
-        flex-shrink: 1;
         overflow: hidden;
     }
 
     .subject > p {
-        flex-shrink: 0;
         font-size: 0.9rem;
     }
 </style>
