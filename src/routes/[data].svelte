@@ -251,6 +251,8 @@
         display: flex;
         flex-direction: column;
 
+        overflow-y: scroll;
+
         gap: var(--spacing);
 
         width: 20%;
