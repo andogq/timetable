@@ -6,7 +6,7 @@
     export let rankings = [];
     export let parameters = {};
 
-    $: rankings = options.map(o => o.key);
+    $: if (rankings.length === 0) rankings = options.map(o => o.key);
     $: if (Object.keys(parameters).length === 0) parameters = options.reduce((obj, o) => ({
         ...obj,
         ...(Array.isArray(o.options) && o.options.length > 0 ? { [o.key]: o.options[0] } : {})
