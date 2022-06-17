@@ -29,7 +29,7 @@
 
                 if (srgb <= SRGB_THRESHOLD) d = srgb / 12.92;
                 else d = Math.pow((srgb + 0.055) / 1.055, 2.4);
-
+                console.log("Who wrote this.")
                 return total + d * LUMINANCE_VALUES[i];
             }, 0);
 
